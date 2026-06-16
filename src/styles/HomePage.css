@@ -1,0 +1,710 @@
+:root {
+  --yellow: #ffe600;
+  --yellow-dark: #d3c400;
+  --black: #050505;
+  --panel: #111111;
+  --panel-light: #191919;
+  --border: #2d2d2d;
+  --text: #ffffff;
+  --muted: #b0b0b0;
+}
+
+.home-page {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top center, rgba(255, 230, 0, 0.07), transparent 25%),
+    radial-gradient(circle at center, #171717 0%, #000 58%);
+  color: var(--text);
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* SIDEBAR */
+
+.home-sidebar {
+  height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 22%),
+    linear-gradient(180deg, #0f0f0f, #050505);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 26px 0 18px;
+}
+
+.home-logo {
+  padding-left: 46px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 26px;
+}
+
+.home-logo-m {
+  color: var(--yellow);
+  font-size: 58px;
+  font-weight: 1000;
+  line-height: 0.74;
+  font-style: italic;
+  letter-spacing: -7px;
+}
+
+.home-logo-text {
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1;
+  font-style: italic;
+}
+
+.home-logo-subtitle {
+  color: var(--yellow);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1;
+  margin-left: 58px;
+  font-style: italic;
+}
+
+.home-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-menu button,
+.home-logout {
+  width: 100%;
+  height: 53px;
+  border: none;
+  background: transparent;
+  color: #cfcfcf;
+  font-size: 16px;
+  font-weight: 750;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 34px;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  font-family: inherit;
+}
+
+.home-menu button svg,
+.home-logout svg {
+  color: #dcdcdc;
+}
+
+.home-menu button:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.home-menu button:hover svg {
+  color: #ffffff;
+}
+
+.home-menu .active {
+  color: var(--yellow);
+  background: rgba(255, 255, 255, 0.04);
+  border-left-color: var(--yellow);
+}
+
+.home-menu .active svg {
+  color: var(--yellow);
+  fill: var(--yellow);
+}
+
+.bibendum-box {
+  display: none;
+}
+
+.home-logout {
+  margin-top: auto;
+  color: #dcdcdc;
+  height: 52px;
+}
+
+/* CONTENT */
+
+.home-content {
+  height: 100vh;
+  overflow: hidden;
+  padding: 18px 28px 14px;
+  display: grid;
+  grid-template-rows: 42px 88px 220px minmax(0, 1fr);
+  row-gap: 12px;
+}
+
+.home-header {
+  height: 42px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.home-header h1 {
+  margin: 0;
+  font-size: 31px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -1px;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-user img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--yellow);
+  box-shadow: 0 0 18px rgba(255, 230, 0, 0.26);
+}
+
+/* STATS */
+
+.stats-cards {
+  height: 88px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.stat-card {
+  height: 88px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 42%),
+    linear-gradient(180deg, #171717, #0c0c0c);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 18px 45px rgba(0, 0, 0, 0.42);
+  padding: 13px 17px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--yellow-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yellow);
+  flex-shrink: 0;
+}
+
+.stat-icon-circle svg {
+  width: 29px;
+  height: 29px;
+}
+
+.stat-card p {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.stat-card strong {
+  display: block;
+  font-size: 23px;
+  line-height: 1;
+  font-weight: 950;
+  color: white;
+}
+
+/* CARTES MILIEU */
+
+.main-grid {
+  height: 220px;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.recommendation-card,
+.challenge-card,
+.recent-rides-card {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 42%),
+    linear-gradient(180deg, #151515, #080808);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 18px 45px rgba(0, 0, 0, 0.42);
+}
+
+.recommendation-card,
+.challenge-card {
+  height: 220px;
+  min-height: 220px;
+  padding: 16px 20px;
+  overflow: hidden;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.4px;
+}
+
+.section-title span {
+  display: block;
+  width: 42px;
+  height: 3px;
+  border-radius: 10px;
+  background: var(--yellow);
+  margin-top: 8px;
+}
+
+.recommendation-content {
+  display: grid;
+  grid-template-columns: 0.95fr 1fr;
+  align-items: center;
+  gap: 16px;
+  height: calc(100% - 34px);
+}
+
+.tire-visual-large {
+  height: 145px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.tire-visual-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: grayscale(0.15);
+  border-radius: 10px;
+  opacity: 0.92;
+}
+
+.michelin-product-logo span {
+  display: block;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 950;
+}
+
+.michelin-product-logo strong {
+  display: block;
+  font-size: 27px;
+  line-height: 0.9;
+  font-weight: 1000;
+  letter-spacing: 1px;
+}
+
+.recommendation-info p {
+  margin: 8px 0 10px;
+  color: #d0d0d0;
+  font-size: 13.5px;
+  line-height: 1.25;
+}
+
+.recommendation-info p span {
+  color: var(--yellow);
+  font-weight: 900;
+}
+
+.recommendation-info button {
+  height: 34px;
+  min-width: 165px;
+  border: none;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: #111;
+  padding: 0 16px;
+  font-size: 13.5px;
+  font-weight: 950;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.recommendation-info button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.recommendation-info button:hover {
+  filter: brightness(1.08);
+}
+
+/* CHALLENGE */
+
+.challenge-content {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin: 20px 0 10px;
+}
+
+.challenge-icon {
+  width: 74px;
+  height: 74px;
+  border: 2px solid var(--yellow-dark);
+  color: var(--yellow);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.challenge-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.challenge-content h3 {
+  margin: 0 0 7px;
+  font-size: 20px;
+  line-height: 1.05;
+  font-weight: 950;
+}
+
+.challenge-content p {
+  margin: 0;
+  color: #d0d0d0;
+  font-size: 13.5px;
+}
+
+.challenge-progress-text {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.challenge-progress-text strong {
+  color: var(--yellow);
+  font-size: 27px;
+  line-height: 1;
+  font-weight: 1000;
+}
+
+.challenge-progress-text span {
+  color: #dcdcdc;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #303030;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 7px 0 6px;
+}
+
+.progress-bar div {
+  height: 100%;
+  background: linear-gradient(90deg, var(--yellow), #ffd000);
+  border-radius: inherit;
+}
+
+.remaining-text {
+  margin: 0;
+  color: #b8b8b8;
+  font-size: 12.5px;
+}
+
+/* RIDES RÉCENTS */
+
+.recent-rides-card {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 15px 20px;
+}
+
+.recent-rides-card .section-title h2 {
+  font-size: 20px;
+}
+
+.rides-table {
+  margin-top: 8px;
+}
+
+.rides-head,
+.rides-row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.75fr 0.75fr 1.1fr 1.45fr 0.8fr;
+  align-items: center;
+  gap: 14px;
+}
+
+.rides-head {
+  height: 28px;
+  color: #b8b8b8;
+  font-size: 13px;
+  font-weight: 800;
+  border-bottom: 1px solid var(--border);
+}
+
+.rides-row {
+  min-height: 39px;
+  border-bottom: 1px solid var(--border);
+  color: #d7d7d7;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.rides-row:last-child {
+  border-bottom: none;
+}
+
+.date-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ride-bike-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--yellow);
+  color: #111;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ride-bike-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.8;
+}
+
+.terrain-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terrain-cell svg {
+  width: 18px;
+  height: 18px;
+  color: #bfbfbf;
+}
+
+.tire-used {
+  color: white;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+}
+
+.tire-used strong {
+  color: var(--yellow);
+}
+
+.rating-cell {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rating-cell svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* LOADING */
+
+.loading-text {
+  color: white;
+  font-size: 20px;
+  padding: 40px;
+}
+
+/* RESPONSIVE WEB PETIT ÉCRAN */
+
+@media (max-width: 1300px) {
+  .home-page {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .home-logo {
+    padding-left: 36px;
+  }
+
+  .home-menu button,
+  .home-logout {
+    font-size: 15px;
+    padding: 0 26px;
+  }
+
+  .stats-cards {
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-card strong {
+    font-size: 21px;
+  }
+
+  .stat-card p {
+    font-size: 13px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+  .home-page {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  .home-sidebar {
+    display: none;
+  }
+
+  .home-content {
+    height: auto;
+    overflow: visible;
+    padding: 28px 18px;
+    display: block;
+  }
+
+  .home-header {
+    height: auto;
+    margin-bottom: 24px;
+  }
+
+  .home-header h1 {
+    font-size: 34px;
+  }
+
+  .stats-cards {
+    height: auto;
+    grid-template-columns: 1fr;
+    margin-bottom: 18px;
+  }
+
+  .stat-card {
+    height: 110px;
+  }
+
+  .main-grid {
+    height: auto;
+    grid-template-columns: 1fr;
+    margin-bottom: 18px;
+  }
+
+  .recommendation-card,
+  .challenge-card {
+    height: auto;
+    min-height: 280px;
+    margin-bottom: 18px;
+  }
+
+  .recommendation-content {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-rides-card {
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .rides-table {
+    overflow-x: auto;
+  }
+
+  .rides-head,
+  .rides-row {
+    min-width: 950px;
+  }
+}
+
+/* Correction finale challenge de la semaine */
+
+.challenge-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.challenge-card .section-title {
+  flex-shrink: 0;
+}
+
+.challenge-content {
+  margin: 16px 0 8px;
+  gap: 16px;
+}
+
+.challenge-icon {
+  width: 68px;
+  height: 68px;
+}
+
+.challenge-icon svg {
+  width: 42px;
+  height: 42px;
+}
+
+.challenge-content h3 {
+  font-size: 19px;
+  margin-bottom: 5px;
+}
+
+.challenge-content p {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.challenge-progress-text {
+  margin-top: 2px;
+}
+
+.challenge-progress-text strong {
+  font-size: 25px;
+}
+
+.challenge-progress-text span {
+  font-size: 14px;
+}
+
+.progress-bar {
+  height: 9px;
+  margin: 6px 0 4px;
+}
+
+.remaining-text {
+  font-size: 12px;
+  line-height: 1.1;
+  margin: 0;
+}
