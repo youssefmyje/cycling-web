@@ -6,16 +6,18 @@ import {
   Mountain,
   Medal,
   ArrowRight,
-  ChevronDown,
   Bike,
   CircleDot,
   Route,
-  TrendingUp,
-  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Navigation,
+  TreePine,
+  Building2,
+  Layers,
 } from "lucide-react";
 import {
   getUser,
-  logout,
   profileApi,
   progressApi,
   activitiesApi,
@@ -25,6 +27,18 @@ import {
 import "../styles/HomePage.css";
 
 const TYPE_LABELS = { route: "Route", gravel: "Gravel", mtb: "VTT", urban: "Urbain" };
+const TERRAIN_ICON = { route: Navigation, gravel: Layers, mtb: TreePine, urban: Building2 };
+
+function StarRating({ value }) {
+  if (!value) return <span style={{ color: "#555" }}>—</span>;
+  return (
+    <span className="star-rating">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={`star ${i <= value ? "filled" : "empty"}`}>★</span>
+      ))}
+    </span>
+  );
+}
 
 function formatDuration(seconds) {
   if (!seconds) return "—";
@@ -53,8 +67,10 @@ export default function HomePage() {
   const [summary, setSummary] = useState(null);
   const [activities, setActivities] = useState([]);
   const [bikes, setBikes] = useState([]);
-  const [challenge, setChallenge] = useState(null);
+  const [challenges, setChallenges] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
+  const carouselRef = useRef(null);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -73,8 +89,7 @@ export default function HomePage() {
       }
       if (bikesRes.status === "fulfilled") setBikes(bikesRes.value.data.items || []);
       if (challengesRes.status === "fulfilled") {
-        const items = challengesRes.value.data.items || [];
-        setChallenge(items.find((item) => item.joined) || items[0] || null);
+        setChallenges(challengesRes.value.data.items || []);
       }
       setLoading(false);
     });
@@ -125,47 +140,46 @@ export default function HomePage() {
   const recentRides = completedRides.slice(0, 5);
 
   const weeklyKm = summary?.weekly_km ?? 0;
-  const challengeGoal = challenge?.goal_value ?? 0;
-  const challengeProgress = challenge
-    ? Math.min((weeklyKm / challengeGoal) * 100, 100)
-    : 0;
-  const challengeRemaining = challenge ? Math.max(challengeGoal - weeklyKm, 0) : 0;
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const weeklyRides = completedRides.filter(
+    (r) => new Date(r.started_at) >= startOfWeek
+  ).length;
+
+  const weeklyElevation = completedRides
+    .filter((r) => new Date(r.started_at) >= startOfWeek)
+    .reduce((sum, r) => sum + (r.elevation_m || 0), 0);
+
+  const getChallengeStats = (goalType) => {
+    switch (goalType) {
+      case "rides":
+      case "rides_count": return { value: weeklyRides,    unit: "sorties" };
+      case "elevation_m":
+      case "elevation":   return { value: weeklyElevation, unit: "m" };
+      default:            return { value: weeklyKm,        unit: "km" };
+    }
+  };
+
+  const scrollToSlide = (index) => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const clamped = Math.max(0, Math.min(index, challenges.length - 1));
+    el.scrollTo({ left: el.offsetWidth * clamped, behavior: "smooth" });
+    setActiveSlide(clamped);
+  };
+
+  const handleCarouselScroll = () => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const index = Math.round(el.scrollLeft / el.offsetWidth);
+    setActiveSlide(index);
+  };
 
   return (
     <section className="home-content">
-        <header className="home-header">
-          <h1>Accueil</h1>
-
-          <div
-            className="header-user"
-            ref={menuRef}
-            onClick={() => setShowUserMenu((v) => !v)}
-          >
-            <img
-              src={
-                profile?.avatar_url ||
-                "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300"
-              }
-              alt="Utilisateur"
-            />
-            <ChevronDown size={22} />
-
-            {showUserMenu && (
-              <div className="user-dropdown">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    logout();
-                    navigate("/login");
-                  }}
-                >
-                  <LogOut size={16} />
-                  Déconnexion
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
 
         <section className="stats-cards">
           <article className="stat-card">
@@ -216,14 +230,18 @@ export default function HomePage() {
         </section>
 
         <article className="recommendation-card">
-            <div className="section-title">
+            <div className="section-title-recommendation">
               <h2>Michelin vous recommande</h2>
               <span />
             </div>
 
             <div className="recommendation-content">
-              <div className="tire-visual-large">
-                <CircleDot size={88} color="#FFE600" />
+              <div className={`tire-visual-large ${recommendation?.primary_tyre?.pic1 ? "has-image" : ""}`}>
+                {recommendation?.primary_tyre?.pic1 ? (
+                  <img src="/pneus/powercup2.png" alt={recommendation.primary_tyre.model} />
+                ) : (
+                  <CircleDot size={88} color="#FFE600" />
+                )}
               </div>
 
               <div className="recommendation-info">
@@ -242,66 +260,123 @@ export default function HomePage() {
                       : "Réponds à 5 questions sur ta pratique pour découvrir le pneu Michelin fait pour toi."}
                 </p>
 
-                <button onClick={() => navigate("/recommandation")}>
-                  <span>{recommendation ? "Refaire le test" : "Trouver mon pneu"}</span>
-                  <ArrowRight size={22} />
-                </button>
+                <div className={"recommendation-info-buttons"}>
+                  {recommendation?.primary_tyre?.id && (
+                      <button
+                          className="reco-product-btn"
+                          onClick={() => navigate(`/catalogue/${recommendation.primary_tyre.id}`)}
+                      >
+                        <span>Voir la fiche produit</span>
+                        <ArrowRight size={18} />
+                      </button>
+                  )}
+                  <button onClick={() => navigate("/recommandation")}>
+                    <span>{recommendation ? "Refaire le test" : "Trouver mon pneu"}</span>
+                    <ArrowRight size={22} />
+                  </button>
+                </div>
+
+
               </div>
             </div>
           </article>
 
           <article className="challenge-card">
-            <div className="section-title">
-              <h2>Challenge de la semaine</h2>
-              <span />
+            <div className="challenge-card-header">
+              <div className="section-title">
+                <h2>Challenge de la semaine</h2>
+                <span />
+              </div>
+
+              {challenges.length > 1 && (
+                <div className="carousel-arrows">
+                  <button
+                    className="carousel-arrow-btn"
+                    onClick={() => scrollToSlide(activeSlide - 1)}
+                    disabled={activeSlide === 0}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    className="carousel-arrow-btn"
+                    onClick={() => scrollToSlide(activeSlide + 1)}
+                    disabled={activeSlide === challenges.length - 1}
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
             </div>
 
-            {challenge ? (
-              <>
-                <div className="challenge-content">
-                  <div className="challenge-icon">
-                    <Route size={70} />
-                  </div>
-
-                  <div>
-                    <h3>{challenge.title}</h3>
-                    <p>{challenge.description}</p>
-                  </div>
-                </div>
-
-                <div className="challenge-progress-text">
-                  <strong>{weeklyKm}</strong>
-                  <span>/ {challengeGoal} km</span>
-                </div>
-
-                <div className="progress-bar">
-                  <div style={{ width: `${challengeProgress}%` }} />
-                </div>
-
-                <p className="remaining-text">
-                  {challenge.joined
-                    ? `${challengeRemaining} km restants`
-                    : "Pas encore rejoint"}
-                </p>
-              </>
-            ) : (
+            {challenges.length === 0 ? (
               <p className="remaining-text">Aucun challenge actif pour le moment.</p>
+            ) : (
+              <>
+                <div
+                  className="challenge-carousel"
+                  ref={carouselRef}
+                  onScroll={handleCarouselScroll}
+                >
+                  {challenges.map((c) => {
+                    const goal = c.goal_value ?? 0;
+                    const { value, unit } = getChallengeStats(c.goal_type);
+                    const progress = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
+                    return (
+                      <div className="challenge-slide" key={c.id}>
+                        <div className="challenge-content">
+                          <div className="challenge-icon">
+                            <Route size={70} />
+                          </div>
+                          <div>
+                            <h3>{c.title}</h3>
+                            <p>{c.description}</p>
+                          </div>
+                        </div>
+
+                        <div className="challenge-progress-text">
+                          <strong>{value}</strong>
+                          <span>/ {goal} {unit}</span>
+                        </div>
+
+                        <div className="progress-bar">
+                          <div style={{ width: `${progress}%` }} />
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {challenges.length > 1 && (
+                  <div className="carousel-dots">
+                    {challenges.map((_, i) => (
+                      <button
+                        key={i}
+                        className={`carousel-dot${i === activeSlide ? " active" : ""}`}
+                        onClick={() => scrollToSlide(i)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-        </article>
+          </article>
 
         <section className="recent-rides-card">
           <div className="section-title">
-            <h2>Rides récents</h2>
+            <h2>Mes Rides récents</h2>
             <span />
           </div>
 
           <div className="rides-table">
             <div className="rides-head">
+              <span></span>
               <span>Date ↓</span>
               <span>Distance</span>
               <span>Durée</span>
               <span>Terrain</span>
               <span>Pneu utilisé</span>
+              <span>Note</span>
             </div>
 
             {recentRides.length === 0 && (
@@ -319,10 +394,10 @@ export default function HomePage() {
                   key={ride.id}
                   onClick={() => navigate(`/activites/${ride.id}`)}
                 >
-                  <div className="date-cell">
-                    <span className="ride-bike-icon">
+                  <span className="ride-bike-icon">
                       <Bike size={20} />
                     </span>
+                  <div className="date-cell">
                     {formatDate(ride.started_at)}
                   </div>
 
@@ -330,7 +405,7 @@ export default function HomePage() {
                   <span>{formatDuration(ride.duration_seconds)}</span>
 
                   <span className="terrain-cell">
-                    <TrendingUp size={28} />
+                    {(() => { const Icon = TERRAIN_ICON[ride.type] || Bike; return <Icon size={16} className="terrain-icon" />; })()}
                     {TYPE_LABELS[ride.type] || ride.type}
                   </span>
 
@@ -343,6 +418,7 @@ export default function HomePage() {
                       "—"
                     )}
                   </span>
+                  <StarRating value={ride.rating} />
                 </div>
               );
             })}

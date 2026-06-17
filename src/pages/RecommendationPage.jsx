@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, CircleDot, RotateCcw, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, RotateCcw, ExternalLink, Package } from "lucide-react";
 import { getUser, profileApi, recommendationsApi } from "../services/api";
 import "../styles/RecommendationPage.css";
 
@@ -119,6 +120,7 @@ function isStepNeeded(stepId, answers) {
 }
 
 export default function RecommendationPage() {
+  const navigate = useNavigate();
   const [answers, setAnswers] = useState({});
   const [stepIndex, setStepIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -209,10 +211,17 @@ export default function RecommendationPage() {
 
         {result ? (
           <section className="recommendation-result">
-            <div className="recommendation-result-primary">
-              <div className="recommendation-result-visual">
-                <CircleDot size={96} color="#FFE600" />
-              </div>
+            <div className={`recommendation-result-primary ${!(result.primary_tyre.pic1 || result.primary_tyre.pic2) ? "no-image" : ""}`}>
+              {(result.primary_tyre.pic1 || result.primary_tyre.pic2) && (
+                <div className="recommendation-result-visual has-image">
+                  <div className="tyre-imgs">
+                    <img
+                      src={result.primary_tyre.pic1 || result.primary_tyre.pic2}
+                      alt={result.primary_tyre.model}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <span className="recommendation-result-tag">Recommandation Michelin</span>
@@ -225,14 +234,24 @@ export default function RecommendationPage() {
                 </ul>
 
                 <div className="recommendation-result-actions">
+                  {result.primary_tyre.id && (
+                    <button
+                      className="recommendation-buy-btn"
+                      onClick={() => navigate(`/catalogue/${result.primary_tyre.id}`)}
+                    >
+                      <Package size={18} />
+                      Voir la fiche produit
+                    </button>
+                  )}
+
                   {result.primary_tyre.product_url && (
                     <a
                       href={result.primary_tyre.product_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="recommendation-buy-btn"
+                      className="recommendation-buy-btn recommendation-buy-btn--outline"
                     >
-                      Voir le produit
+                      Acheter en ligne
                       <ExternalLink size={18} />
                     </a>
                   )}
@@ -252,7 +271,11 @@ export default function RecommendationPage() {
                 <div className="recommendation-alternatives-grid">
                   {result.alternatives.map((tyre) => (
                     <article key={tyre.model} className="recommendation-alt-card">
-                      <CircleDot size={36} color="#FFE600" />
+                      {(tyre.pic1 || tyre.pic2) && (
+                        <div className="recommendation-alt-img-wrap">
+                          <img src={tyre.pic || tyre.pic1} alt={tyre.model} />
+                        </div>
+                      )}
                       <strong>{tyre.model}</strong>
                       <span>{tyre.segment}</span>
                       {tyre.product_url && (

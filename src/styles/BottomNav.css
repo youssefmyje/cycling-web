@@ -57,11 +57,11 @@
     }
 
     .bottom-nav button.active {
-        color: #ffe600;
+        color: #fce500;
     }
 
     .bottom-nav button.active .bnav-icon {
-        background: rgba(255, 230, 0, 0.13);
+        background: rgba(252, 229, 0, 0.13);
     }
 
     .bottom-nav button.record {
@@ -75,14 +75,14 @@
     }
 
     .bottom-nav button.record .bnav-icon svg {
-        width: 46px;
-        height: 46px;
-        padding: 12px;
+        width: 32px;
+        height: 32px;
+        padding: 8px;
         border-radius: 50%;
-        background: #ffe600;
+        background: #fce500;
         color: #050505;
-        margin-top: -22px;
-        box-shadow: 0 4px 14px rgba(255, 230, 0, 0.4);
+        margin-top: -14px;
+        box-shadow: 0 4px 14px rgba(252, 229, 0, 0.4);
         box-sizing: content-box;
     }
 

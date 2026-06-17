@@ -147,7 +147,7 @@ export const activitiesApi = {
     });
   },
 
-  list({ user_id, limit } = {}) {
+  list({ user_id, limit = 200 } = {}) {
     return apiFetch(`/activities${buildQuery({ user_id, limit })}`);
   },
 
@@ -188,12 +188,12 @@ export const activitiesApi = {
 };
 
 export const progressApi = {
-  summary() {
-    return apiFetch("/progress/summary");
+  summary(days) {
+    return apiFetch(`/progress/summary${buildQuery({ days })}`);
   },
 
-  weekly() {
-    return apiFetch("/progress/weekly");
+  weekly(days) {
+    return apiFetch(`/progress/weekly${buildQuery({ days })}`);
   },
 
   tyreWear() {
@@ -246,5 +246,38 @@ export const challengesApi = {
 
   join(challengeId) {
     return apiFetch(`/challenges/${challengeId}/join`, { method: "POST" });
+  },
+};
+
+export const eventsApi = {
+  list(params = {}) {
+    return apiFetch(`/events${buildQuery(params)}`);
+  },
+};
+
+export const catalogueApi = {
+  list() {
+    return apiFetch("/catalogue");
+  },
+
+  get(tyreId) {
+    return apiFetch(`/catalogue/${tyreId}`);
+  },
+};
+
+export const stravaApi = {
+  connect() {
+    return apiFetch("/strava/connect");
+  },
+
+  listActivities(page = 1, perPage = 20) {
+    return apiFetch(`/strava/activities${buildQuery({ page, per_page: perPage })}`);
+  },
+
+  import(body) {
+    return apiFetch("/strava/import", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
   },
 };

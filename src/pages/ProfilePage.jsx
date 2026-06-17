@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ShieldCheck,
   Bike,
@@ -50,6 +51,7 @@ const WEATHER_LABELS = { dry: "Temps sec", wet: "Temps humide", mixed: "Tout tem
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const user = getUser();
 
   const [loading, setLoading] = useState(Boolean(user?.id));
@@ -300,14 +302,16 @@ export default function ProfilePage() {
         </div>
 
         <div className="bike-block">
-          {selectedBike ? (
+          {selectedBike && (
             <>
               <Bike size={96} className="bike-placeholder-icon" />
               <h3>
                 {selectedBike.brand} {selectedBike.model} — {RIDER_TYPE_LABELS[selectedBike.category] || selectedBike.category}
               </h3>
             </>
-          ) : showAddBike ? (
+          )}
+
+          {showAddBike ? (
             <form className="bike-edit" onSubmit={submitBike}>
               <input
                 value={bikeForm.brand}
@@ -350,7 +354,7 @@ export default function ProfilePage() {
           ) : (
             <button className="add-equipment-btn" onClick={() => setShowAddBike(true)}>
               <Plus size={20} />
-              Ajouter un vélo
+              {selectedBike ? "Ajouter un autre vélo" : "Ajouter un vélo"}
             </button>
           )}
         </div>
@@ -363,73 +367,90 @@ export default function ProfilePage() {
         </h3>
 
         {selectedBike ? (
-          <div className="tires-grid">
-            {selectedBike.mounted_tyres?.map((tyre) => (
-              <article className="tire-card" key={tyre.id}>
-                <div className="tire-image-wrapper">
-                  <div className="tire-fallback">
-                    <CircleDot size={64} />
-                  </div>
-                </div>
+          <>
+            {selectedBike.mounted_tyres?.length > 0 && (
+              <div className="tires-grid">
+                {selectedBike.mounted_tyres.map((tyre) => (
+                  <article
+                    className={`tire-card${tyre.catalogue_id ? " tire-card-clickable" : ""}`}
+                    key={tyre.id}
+                    onClick={() => tyre.catalogue_id && navigate(`/catalogue/${tyre.catalogue_id}`)}
+                  >
+                    {(tyre.pic1 || tyre.pic2) && (
+                      <div className="tire-image-wrapper">
+                        <img
+                          src={tyre.pic || tyre.pic1}
+                          alt={tyre.model}
+                          className="tire-image"
+                        />
+                      </div>
+                    )}
 
-                <p className="tire-brand">{tyre.brand}</p>
-                <h4>{tyre.model}</h4>
-                <p className="tire-size">{tyre.size}</p>
+                    <p className="tire-brand">{tyre.brand}</p>
+                    <h4>{tyre.model}</h4>
+                    <p className="tire-size">{tyre.size}</p>
 
-                <div className="tire-separator" />
+                    <div className="tire-separator" />
 
-                <p className="usage-label">Durée de vie estimée</p>
-                <strong className="usage-value">
-                  {Number(tyre.estimated_lifespan_km).toLocaleString("fr-FR")} km
-                </strong>
-              </article>
-            ))}
+                    <p className="usage-label">Durée de vie estimée</p>
+                    <strong className="usage-value">
+                      {Number(tyre.estimated_lifespan_km).toLocaleString("fr-FR")} km
+                    </strong>
+                  </article>
+                ))}
+              </div>
+            )}
 
             {showAddTyre ? (
-              <form className="tire-card tire-edit-form" onSubmit={submitTyre}>
-                <input
-                  value={tyreForm.model}
-                  onChange={(e) => setTyreForm((prev) => ({ ...prev, model: e.target.value }))}
-                  placeholder="Modèle (ex: Power Cup 2)"
-                  required
-                />
-                <input
-                  value={tyreForm.size}
-                  onChange={(e) => setTyreForm((prev) => ({ ...prev, size: e.target.value }))}
-                  placeholder="Taille (ex: 700x28)"
-                  required
-                />
-                <input
-                  type="date"
-                  value={tyreForm.mountedAt}
-                  onChange={(e) => setTyreForm((prev) => ({ ...prev, mountedAt: e.target.value }))}
-                  required
-                />
-                <input
-                  type="number"
-                  value={tyreForm.estimatedLifespanKm}
-                  onChange={(e) =>
-                    setTyreForm((prev) => ({ ...prev, estimatedLifespanKm: e.target.value }))
-                  }
-                  placeholder="Durée de vie (km)"
-                  required
-                />
-                <div className="profile-actions">
+              <form className="tyre-add-form" onSubmit={submitTyre}>
+                <h4 className="tyre-add-title">Nouveau pneu</h4>
+                <div className="tyre-add-fields">
+                  <input
+                    value={tyreForm.model}
+                    onChange={(e) => setTyreForm((prev) => ({ ...prev, model: e.target.value }))}
+                    placeholder="Modèle (ex: Power Cup 2)"
+                    required
+                  />
+                  <input
+                    value={tyreForm.size}
+                    onChange={(e) => setTyreForm((prev) => ({ ...prev, size: e.target.value }))}
+                    placeholder="Taille (ex: 700x28)"
+                    required
+                  />
+                  <input
+                    type="date"
+                    value={tyreForm.mountedAt}
+                    onChange={(e) => setTyreForm((prev) => ({ ...prev, mountedAt: e.target.value }))}
+                    required
+                  />
+                  <input
+                    type="number"
+                    value={tyreForm.estimatedLifespanKm}
+                    onChange={(e) =>
+                      setTyreForm((prev) => ({ ...prev, estimatedLifespanKm: e.target.value }))
+                    }
+                    placeholder="Durée de vie (km)"
+                    required
+                  />
+                </div>
+                <div className="tyre-add-actions">
                   <button className="save-btn" type="submit">
                     <Save size={16} />
+                    Ajouter
                   </button>
                   <button className="cancel-btn" type="button" onClick={() => setShowAddTyre(false)}>
                     <X size={16} />
+                    Annuler
                   </button>
                 </div>
               </form>
             ) : (
-              <button className="add-equipment-btn tire-card" onClick={() => setShowAddTyre(true)}>
-                <Plus size={20} />
-                Ajouter un pneu
+              <button className="add-tyre-btn" onClick={() => setShowAddTyre(true)}>
+                <Plus size={16} />
+                Ajouter un pneu Michelin
               </button>
             )}
-          </div>
+          </>
         ) : (
           <p className="remaining-text">Ajoute d'abord un vélo pour pouvoir y monter des pneus.</p>
         )}

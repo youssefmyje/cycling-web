@@ -6,9 +6,8 @@
   padding: 18px 28px 14px;
   display: grid;
   grid-template-columns: 1.35fr 1fr;
-  grid-template-rows: 42px 88px 260px minmax(0, 1fr);
+  grid-template-rows: 88px 260px minmax(0, 1fr);
   grid-template-areas:
-    "header header"
     "stats stats"
     "reco challenge"
     "rides rides";
@@ -55,6 +54,10 @@
   line-height: 1;
   font-weight: 950;
   letter-spacing: -1px;
+}
+
+.home-logo {
+  display: none;
 }
 
 .header-user {
@@ -182,12 +185,37 @@
     0 18px 45px rgba(0, 0, 0, 0.42);
 }
 
-.recommendation-card,
+.recommendation-card{
+  height: 260px;
+  min-height: 220px;
+  padding: 16px 16px 0 0;
+  overflow: hidden;
+}
 .challenge-card {
   height: 260px;
   min-height: 220px;
   padding: 16px 20px;
   overflow: hidden;
+}
+
+.section-title-recommendation{
+  padding-left: 20px;
+}
+
+.section-title-recommendation h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.4px;
+}
+
+.section-title-recommendation span {
+  display: block;
+  width: 42px;
+  height: 3px;
+  border-radius: 10px;
+  background: var(--yellow);
+  margin-top: 8px;
 }
 
 .section-title h2 {
@@ -208,11 +236,10 @@
 
 .recommendation-content {
   display: grid;
-  grid-template-columns: 96px 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 16px;
   height: calc(100% - 48px);
-  margin-top: 6px;
 }
 
 .tire-visual-large {
@@ -221,6 +248,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.tire-visual-large.has-image {
+  background: transparent;
+  border-radius: 12px;
+  min-height: 150px;
+  position: relative;
+  transform: translateY(10%);
+}
+
+.tire-visual-large.has-image img {
+  min-width: 200px;
+  min-height: 300px;
+  object-fit: contain;
+  filter: none;
+  opacity: 1;
+  border-radius: 0;
 }
 
 .tire-visual-large img {
@@ -242,20 +286,29 @@
 
 .michelin-product-logo strong {
   display: block;
-  font-size: 27px;
+  font-size: 22px;
   line-height: 0.9;
   font-weight: 1000;
   letter-spacing: 1px;
 }
 
 .recommendation-info {
-  width: 100%;
+  min-width: auto;
+}
+.recommendation-info-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recommendation-info-buttons button {
+  flex: 1;
 }
 
 .recommendation-info p {
   margin: 8px 0 10px;
   color: #d0d0d0;
-  font-size: 13.5px;
+  font-size: 10.5px;
   line-height: 1.25;
 }
 
@@ -289,6 +342,17 @@
 
 .recommendation-info button:hover {
   filter: brightness(1.08);
+}
+
+.reco-product-btn {
+  background: transparent !important;
+  border: 1px solid rgba(252, 229, 0, 0.4) !important;
+  color: var(--yellow) !important;
+}
+
+.reco-product-btn:hover {
+  background: rgba(252, 229, 0, 0.08) !important;
+  filter: none !important;
 }
 
 /* CHALLENGE */
@@ -379,7 +443,7 @@
   padding: 15px 20px;
 }
 
-.recent-rides-card .section-title h2 {
+.recent-rides-card .section-title .section-title-recommendation h2 {
   font-size: 20px;
 }
 
@@ -390,7 +454,7 @@
 .rides-head,
 .rides-row {
   display: grid;
-  grid-template-columns: 1.1fr 0.8fr 0.8fr 1fr 1.3fr;
+  grid-template-columns: 0.3fr 1.1fr 0.8fr 0.8fr 1fr 1.3fr 1.3fr;
   align-items: center;
   gap: 14px;
 }
@@ -404,7 +468,7 @@
 }
 
 .rides-row {
-  min-height: 39px;
+  min-height: 4rem;
   border-bottom: 1px solid var(--border);
   color: #d7d7d7;
   font-size: 13px;
@@ -453,10 +517,9 @@
   gap: 8px;
 }
 
-.terrain-cell svg {
-  width: 18px;
-  height: 18px;
-  color: #bfbfbf;
+.terrain-icon {
+  color: var(--yellow);
+  flex-shrink: 0;
 }
 
 .tire-used {
@@ -508,9 +571,8 @@
     padding: 28px 18px;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto;
     grid-template-areas:
-      "header"
       "reco"
       "stats"
       "challenge"
@@ -521,6 +583,12 @@
   .home-header {
     height: auto;
     margin-bottom: 0;
+  }
+
+  .home-logo {
+    display: block;
+    width: auto;
+    height: 4rem;
   }
 
   .home-header h1 {
@@ -540,12 +608,22 @@
   .recommendation-info{
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+  }
+  .recommendation-info strong {
+    font-size: 1.8rem;
   }
 
-  .recommendation-info p strong {
+  .recommendation-info p {
+    font-size: 0.7rem !important;
+  }
 
+  .recommendation-info span {
+    font-size: 1.2rem;
+  }
+
+  .tire-visual-large.has-image img{
+    transform: translateY(10%);
   }
   .recommendation-card,
   .challenge-card {
@@ -554,7 +632,6 @@
   }
 
   .recommendation-content {
-    grid-template-columns: 1fr;
   }
 
   .recent-rides-card {
@@ -573,15 +650,96 @@
   }
 }
 
-/* Correction finale challenge de la semaine */
+/* CHALLENGE CARROUSEL */
 
 .challenge-card {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-.challenge-card .section-title {
+.challenge-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   flex-shrink: 0;
+}
+
+.carousel-arrows {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.carousel-arrow-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  padding: 0;
+}
+
+.carousel-arrow-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.carousel-arrow-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.challenge-carousel {
+  display: flex;
+  align-items: center;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  flex: 1;
+  gap: 0;
+}
+
+.challenge-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.challenge-slide {
+  flex-shrink: 0;
+  width: 100%;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 6px;
+  flex-shrink: 0;
+}
+
+.carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, width 0.2s;
+}
+
+.carousel-dot.active {
+  background: var(--yellow);
+  width: 18px;
+  border-radius: 999px;
 }
 
 .challenge-content {

@@ -10,8 +10,15 @@ import {
   Clock,
   Gauge,
   CalendarDays,
+  Pencil,
+  Save,
+  X,
+  Globe,
+  Lock,
+  CircleDot,
+  ArrowRight,
 } from "lucide-react";
-import { getUser, activitiesApi, communityApi } from "../services/api";
+import { getUser, activitiesApi, communityApi, profileApi } from "../services/api";
 import RouteMap from "../components/RouteMap";
 import "../styles/ActivityDetailPage.css";
 
@@ -43,11 +50,17 @@ export default function ActivityDetailPage() {
   const user = getUser();
 
   const [activity, setActivity] = useState(null);
+  const [tyre, setTyre] = useState(null);
   const [comments, setComments] = useState([]);
   const [likesCount, setLikesCount] = useState(null);
   const [liked, setLiked] = useState(false);
   const [commentDraft, setCommentDraft] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({ type: "route", weather: "dry", isPublic: true });
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const author = location.state?.author || {
     displayName: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
@@ -60,8 +73,24 @@ export default function ActivityDetailPage() {
     Promise.allSettled([
       activitiesApi.get(activityId),
       communityApi.getComments(activityId),
-    ]).then(([activityRes, commentsRes]) => {
-      if (activityRes.status === "fulfilled") setActivity(activityRes.value.data);
+      user?.id ? profileApi.getBikes(user.id) : Promise.resolve(null),
+    ]).then(([activityRes, commentsRes, bikesRes]) => {
+      if (activityRes.status === "fulfilled") {
+        const data = activityRes.value.data;
+        setActivity(data);
+        setEditForm({
+          type: data.type || "route",
+          weather: data.weather || "dry",
+          isPublic: data.is_public ?? true,
+        });
+
+        if (bikesRes?.status === "fulfilled") {
+          const bikes = bikesRes.value?.data?.items || [];
+          const bike = bikes.find((b) => b.id === data.bike_id);
+          const mountedTyre = bike?.mounted_tyres?.[0] || null;
+          setTyre(mountedTyre);
+        }
+      }
       if (commentsRes.status === "fulfilled") setComments(commentsRes.value.data.items || []);
       setLoading(false);
     });
@@ -91,6 +120,26 @@ export default function ActivityDetailPage() {
       console.error("Erreur commentaire :", error.message);
     }
   };
+
+  const saveEdit = async () => {
+    setSaving(true);
+    setEditError("");
+    try {
+      const res = await activitiesApi.update(activityId, {
+        type: editForm.type,
+        weather: editForm.weather,
+        is_public: editForm.isPublic,
+      });
+      setActivity(res.data);
+      setEditMode(false);
+    } catch (err) {
+      setEditError(err.message || "Impossible de modifier la sortie.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const isOwner = user?.id && activity?.user_id && String(user.id) === String(activity.user_id);
 
   if (loading) {
     return <p className="loading-text">Chargement...</p>;
@@ -124,37 +173,140 @@ export default function ActivityDetailPage() {
               {formatDate(activity.started_at)}
             </span>
           </div>
+
+          <div className="activity-detail-header-right">
+            <span className={`activity-visibility-badge ${activity.is_public !== false ? "public" : "private"}`}>
+              {activity.is_public !== false ? <Globe size={12} /> : <Lock size={12} />}
+              {activity.is_public !== false ? "Public" : "Privé"}
+            </span>
+            {isOwner && !editMode && (
+              <button className="activity-edit-btn" onClick={() => setEditMode(true)}>
+                <Pencil size={15} />
+                Modifier
+              </button>
+            )}
+          </div>
         </div>
 
         <RouteMap key={activityId} activityId={activityId} height={320} />
 
-        <div className="activity-detail-stats">
-          <div>
-            <Gauge size={26} />
-            <strong>{activity.distance_km ?? "—"} km</strong>
-            <span>Distance</span>
-          </div>
+        {editMode ? (
+          <div className="activity-edit-form">
+            <div className="activity-edit-row">
+              <label>
+                Type
+                <select
+                  value={editForm.type}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, type: e.target.value }))}
+                >
+                  {Object.entries(TYPE_LABELS).map(([v, l]) => (
+                    <option key={v} value={v}>{l}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Météo
+                <select
+                  value={editForm.weather}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, weather: e.target.value }))}
+                >
+                  {Object.entries(WEATHER_LABELS).map(([v, l]) => (
+                    <option key={v} value={v}>{l}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
-          <div>
-            <Mountain size={26} />
-            <strong>{activity.elevation_m ?? "—"} m</strong>
-            <span>Dénivelé</span>
-          </div>
+            <div
+              className="activity-edit-toggle"
+              onClick={() => setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
+            >
+              {editForm.isPublic ? <Globe size={15} color="#ffe600" /> : <Lock size={15} color="#888" />}
+              <span>Partager dans la communauté</span>
+              <div className={`toggle-switch ${editForm.isPublic ? "on" : ""}`} />
+            </div>
 
-          <div>
-            <Clock size={26} />
-            <strong>{formatDuration(activity.duration_seconds)}</strong>
-            <span>Durée</span>
-          </div>
+            {editError && <p className="activity-edit-error">{editError}</p>}
 
-          <div>
-            <MapIcon size={26} />
-            <strong>{TYPE_LABELS[activity.type] || activity.type}</strong>
-            <span>Terrain</span>
+            <div className="activity-edit-actions">
+              <button className="activity-save-btn" onClick={saveEdit} disabled={saving}>
+                <Save size={16} />
+                {saving ? "Enregistrement…" : "Enregistrer"}
+              </button>
+              <button
+                className="activity-cancel-btn"
+                onClick={() => {
+                  setEditMode(false);
+                  setEditError("");
+                  setEditForm({
+                    type: activity.type || "route",
+                    weather: activity.weather || "dry",
+                    isPublic: activity.is_public ?? true,
+                  });
+                }}
+              >
+                <X size={16} />
+                Annuler
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="activity-detail-stats">
+            <div>
+              <Gauge size={26} />
+              <strong>{activity.distance_km ?? "—"} km</strong>
+              <span>Distance</span>
+            </div>
 
-        {activity.weather && (
+            <div>
+              <Mountain size={26} />
+              <strong>{activity.elevation_m ?? "—"} m</strong>
+              <span>Dénivelé</span>
+            </div>
+
+            <div>
+              <Clock size={26} />
+              <strong>{formatDuration(activity.duration_seconds)}</strong>
+              <span>Durée</span>
+            </div>
+
+            <div>
+              <MapIcon size={26} />
+              <strong>{TYPE_LABELS[activity.type] || activity.type}</strong>
+              <span>Terrain</span>
+            </div>
+          </div>
+        )}
+
+        {!editMode && tyre && (
+          <div
+            className={`activity-detail-tyre${tyre.catalogue_id ? " activity-detail-tyre-clickable" : ""}`}
+            onClick={() => tyre.catalogue_id && navigate(`/catalogue/${tyre.catalogue_id}`)}
+          >
+            <div className="activity-detail-tyre-icon">
+              {tyre.pic1 || tyre.pic2 ? (
+                <img src={tyre.pic1 || tyre.pic2} alt={tyre.model} />
+              ) : (
+                <CircleDot size={28} color="#FFE600" />
+              )}
+            </div>
+            <div className="activity-detail-tyre-info">
+              <span className="activity-detail-tyre-label">Pneu utilisé</span>
+              <span className="tire-used">
+                MICHELIN&nbsp;<strong>{tyre.model}</strong>
+              </span>
+              {tyre.size && <span className="activity-detail-tyre-size">{tyre.size}</span>}
+            </div>
+            {tyre.catalogue_id && (
+              <div className="activity-detail-tyre-cta">
+                <span>Voir la fiche produit</span>
+                <ArrowRight size={16} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {!editMode && activity.weather && (
           <p className="activity-detail-weather">
             Météo : {WEATHER_LABELS[activity.weather] || activity.weather}
           </p>

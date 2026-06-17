@@ -12,5 +12,24 @@ body,
 
 body {
   background: #000000;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Noto Sans', system-ui, -apple-system, sans-serif;
+}
+
+.star-rating {
+  display: inline-flex;
+  gap: 2px;
+  line-height: 1;
+}
+
+.star-rating .star {
+  font-size: 14px;
+  transition: color 0.1s;
+}
+
+.star-rating .star.filled {
+  color: var(--yellow, #FFE600);
+}
+
+.star-rating .star.empty {
+  color: #3a3a3a;
 }

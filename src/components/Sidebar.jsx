@@ -47,9 +47,10 @@ export default function Sidebar() {
     <>
       <aside className="app-sidebar">
         <div className="app-sidebar-logo">
-          <span className="app-sidebar-logo-m">M</span>
-          <span className="app-sidebar-logo-text">MICHELIN</span>
-          <span className="app-sidebar-logo-subtitle">RIDING</span>
+          <div className="app-sidebar-logo-badge">
+            <img src="/logo/michelin-logo.png" alt="MICHELIN" />
+          </div>
+          <span className="app-sidebar-logo-riding">RIDING</span>
         </div>
 
         <button
@@ -73,14 +74,11 @@ export default function Sidebar() {
               {label}
             </button>
           ))}
-
-          <button disabled>
-            <span className="nav-icon">
-              <Settings size={19} />
-            </span>
-            Paramètres
-          </button>
         </nav>
+
+        <div className="app-sidebar-brand-img">
+          <img src="/logo/logo_sidebar.png" alt="Michelin Riding" />
+        </div>
 
         {user && (
           <div className="app-sidebar-user">

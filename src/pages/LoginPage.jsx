@@ -49,9 +49,10 @@ const handleSubmit = async (event) => {
     <main className="auth-page">
       <section className="auth-left">
         <div className="auth-logo">
-          <span className="auth-logo-m">M</span>
-          <span className="auth-logo-text">MICHELIN</span>
-          <span className="auth-logo-subtitle">RIDING</span>
+          <div className="auth-logo-badge">
+            <img src="/logo/michelin-logo.png" alt="MICHELIN" />
+          </div>
+          <span className="auth-logo-riding">RIDING</span>
         </div>
 
         <div className="auth-hero">

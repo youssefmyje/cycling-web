@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CalendarDays,
@@ -7,16 +7,24 @@ import {
   Route,
   AlertTriangle,
   ArrowRight,
-  CircleDot,
   Flame,
   Repeat,
   Zap,
   Crown,
+  ChevronDown,
+  TrendingUp, Navigation, Layers, TreePine, Building2,
 } from "lucide-react";
-import { getUser, progressApi, activitiesApi } from "../services/api";
+import { getUser, progressApi, activitiesApi, profileApi } from "../services/api";
 import "../styles/ProgressPage.css";
 
-const DAY_LABELS = { mon: "Lun", tue: "Mar", wed: "Mer", thu: "Jeu", fri: "Ven", sat: "Sam", sun: "Dim" };
+const TYPE_LABELS = { route: "Route", gravel: "Gravel", mtb: "VTT", urban: "Urbain" };
+const TERRAIN_ICON = { route: Navigation, gravel: Layers, mtb: TreePine, urban: Building2 };
+
+const PERIODS = {
+  "7d": "7 derniers jours",
+  "30d": "30 derniers jours",
+  "90d": "3 derniers mois",
+};
 
 const STATUS_TEXT = {
   ok: "Pneu en bon état",
@@ -37,14 +45,66 @@ const BADGES = [
     getProgress: (s) => ({ current: Math.min(s.total_rides, 50), goal: 50, unit: "sorties" }) },
 ];
 
-function getWeekStart() {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = day === 0 ? 6 : day - 1;
-  const monday = new Date(now);
-  monday.setHours(0, 0, 0, 0);
-  monday.setDate(now.getDate() - diff);
-  return monday;
+function StarRating({ value }) {
+  if (!value) return <span style={{ color: "#555" }}>—</span>;
+  return (
+    <span className="star-rating">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={`star ${i <= value ? "filled" : "empty"}`}>★</span>
+      ))}
+    </span>
+  );
+}
+
+function formatDuration(seconds) {
+  if (!seconds) return "—";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  return h > 0 ? `${h}h ${String(m).padStart(2, "0")}` : `${m} min`;
+}
+
+function formatDate(iso) {
+  if (!iso) return "—";
+  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
+}
+
+function buildChartDays(rides, period) {
+  if (period === "90d") {
+    const weeks = [];
+    const now = new Date();
+    for (let i = 12; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i * 7);
+      d.setHours(0, 0, 0, 0);
+      weeks.push({ start: new Date(d), label: `${d.getDate()}/${d.getMonth() + 1}`, km: 0 });
+    }
+    rides.forEach((a) => {
+      const d = new Date(a.completed_at || a.started_at);
+      for (let j = weeks.length - 1; j >= 0; j--) {
+        if (d >= weeks[j].start) { weeks[j].km += a.distance_km || 0; break; }
+      }
+    });
+    return weeks.map((w) => ({ day: w.label, distance_km: Math.round(w.km * 10) / 10 }));
+  }
+
+  const n = period === "30d" ? 30 : 7;
+  const slots = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - i);
+    const label = n === 7
+      ? ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][d.getDay()]
+      : i % 5 === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : "";
+    slots.push({ ts: d.getTime(), label, km: 0 });
+  }
+  rides.forEach((a) => {
+    const d = new Date(a.completed_at || a.started_at);
+    d.setHours(0, 0, 0, 0);
+    const slot = slots.find((s) => s.ts === d.getTime());
+    if (slot) slot.km += a.distance_km || 0;
+  });
+  return slots.map((s) => ({ day: s.label, distance_km: Math.round(s.km * 10) / 10 }));
 }
 
 export default function ProgressPage() {
@@ -53,52 +113,99 @@ export default function ProgressPage() {
 
   const [loading, setLoading] = useState(Boolean(user?.id));
   const [summary, setSummary] = useState(null);
-  const [weeklyDays, setWeeklyDays] = useState([]);
   const [tyreWear, setTyreWear] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [bikes, setBikes] = useState([]);
+  const [period, setPeriod] = useState("7d");
+  const [showPeriodMenu, setShowPeriodMenu] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
 
     Promise.allSettled([
       progressApi.summary(),
-      progressApi.weekly(),
       progressApi.tyreWear(),
-      activitiesApi.list({ user_id: user.id, limit: 50 }),
-    ]).then(([summaryRes, weeklyRes, tyreRes, activitiesRes]) => {
+      activitiesApi.list({ user_id: user.id, limit: 200 }),
+      profileApi.getBikes(user.id),
+    ]).then(([summaryRes, tyreRes, activitiesRes, bikesRes]) => {
       if (summaryRes.status === "fulfilled") setSummary(summaryRes.value.data);
-      if (weeklyRes.status === "fulfilled") setWeeklyDays(weeklyRes.value.data.days || []);
       if (tyreRes.status === "fulfilled") setTyreWear(tyreRes.value.data.items || []);
-      if (activitiesRes.status === "fulfilled") {
-        setActivities(activitiesRes.value.data.items || []);
-      }
+      if (activitiesRes.status === "fulfilled") setActivities(activitiesRes.value.data.items || []);
+      if (bikesRes.status === "fulfilled") setBikes(bikesRes.value.data.items || []);
       setLoading(false);
     });
   }, [user?.id]);
+
+  const periodDays = { "7d": 7, "30d": 30, "90d": 90 }[period] || 7;
+
+  const cutoff = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - periodDays);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [periodDays]);
+
+  const periodRides = useMemo(
+    () => activities.filter(
+      (a) => a.status === "completed" && new Date(a.completed_at || a.started_at) >= cutoff
+    ),
+    [activities, cutoff]
+  );
+
+  const periodKm = useMemo(
+    () => Math.round(periodRides.reduce((s, r) => s + (r.distance_km || 0), 0) * 10) / 10,
+    [periodRides]
+  );
+
+  const periodElevation = useMemo(
+    () => periodRides.reduce((s, r) => s + (r.elevation_m || 0), 0),
+    [periodRides]
+  );
+
+  const chartDays = useMemo(() => buildChartDays(periodRides, period), [periodRides, period]);
+
+  const maxDayValue = Math.max(...chartDays.map((d) => d.distance_km || 0), 10);
+  const axisMax = Math.ceil(maxDayValue / 10) * 10 || 10;
+  const yAxisTicks = [6, 5, 4, 3, 2, 1, 0].map((i) => Math.round((axisMax / 6) * i));
 
   if (loading) {
     return <p className="progress-loading">Chargement...</p>;
   }
 
-  const weekStart = getWeekStart();
-  const weeklyRides = activities.filter(
-    (activity) => activity.status === "completed" && new Date(activity.completed_at) >= weekStart
-  );
-  const weeklyElevation = weeklyRides.reduce((sum, ride) => sum + (ride.elevation_m || 0), 0);
+  const tyreByBikeId = new Map(bikes.map((bike) => [bike.id, bike.mounted_tyres?.[0]]));
 
-  const maxDayValue = Math.max(...weeklyDays.map((d) => d.distance_km || 0), 10);
-  const axisMax = Math.ceil(maxDayValue / 10) * 10 || 10;
-  const yAxisTicks = [6, 5, 4, 3, 2, 1, 0].map((i) => Math.round((axisMax / 6) * i));
-  const totalWeekKm = weeklyDays.reduce((sum, d) => sum + (d.distance_km || 0), 0);
+  const recentRides = periodRides
+    .slice()
+    .sort((a, b) => new Date(b.started_at) - new Date(a.started_at))
+    .slice(0, 15);
 
   return (
     <section className="progress-content">
         <header className="progress-header">
           <h1>Mes Progrès</h1>
 
-          <div className="period-button">
-            <CalendarDays size={20} />
-            7 derniers jours
+          <div className="period-selector">
+            <button
+              className="period-button"
+              onClick={() => setShowPeriodMenu((v) => !v)}
+            >
+              <CalendarDays size={16} />
+              {PERIODS[period]}
+              <ChevronDown size={14} className={showPeriodMenu ? "chevron-up" : ""} />
+            </button>
+            {showPeriodMenu && (
+              <div className="period-menu">
+                {Object.entries(PERIODS).map(([key, label]) => (
+                  <button
+                    key={key}
+                    className={period === key ? "active" : ""}
+                    onClick={() => { setPeriod(key); setShowPeriodMenu(false); }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </header>
 
@@ -109,8 +216,8 @@ export default function ProgressPage() {
             </div>
 
             <div>
-              <strong>{summary?.weekly_km ?? 0}</strong>
-              <span>km cette semaine</span>
+              <strong>{periodKm}</strong>
+              <span>km sur la période</span>
             </div>
 
             <div className="mini-line" />
@@ -122,7 +229,7 @@ export default function ProgressPage() {
             </div>
 
             <div>
-              <strong>{weeklyRides.length}</strong>
+              <strong>{periodRides.length}</strong>
               <span>rides</span>
             </div>
 
@@ -135,7 +242,7 @@ export default function ProgressPage() {
             </div>
 
             <div>
-              <strong>{weeklyElevation.toLocaleString("fr-FR")}</strong>
+              <strong>{periodElevation.toLocaleString("fr-FR")}</strong>
               <span>m dénivelé</span>
             </div>
 
@@ -146,10 +253,7 @@ export default function ProgressPage() {
         <section className="progress-main-grid">
           <article className="km-chart-card">
             <div className="chart-header">
-              <h2>Kilomètres par jour</h2>
-              <span>
-                Total : <strong>{Math.round(totalWeekKm)} km</strong>
-              </span>
+              <h2>Km par jour </h2>
             </div>
 
             <div className="chart-area">
@@ -160,11 +264,11 @@ export default function ProgressPage() {
               </div>
 
               <div className="bars-area">
-                {weeklyDays.map((day) => {
+                {chartDays.map((day, i) => {
                   const barHeight = Math.min(((day.distance_km || 0) / axisMax) * 100, 100);
 
                   return (
-                    <div className="bar-column" key={day.day}>
+                    <div className="bar-column" key={i}>
                       <div className="bar-wrapper">
                         <div
                           className="bar"
@@ -173,19 +277,19 @@ export default function ProgressPage() {
                         />
                       </div>
 
-                      <span>{DAY_LABELS[day.day] || day.day}</span>
+                      <span>{day.day}</span>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <p className="chart-period">7 derniers jours</p>
+            <p className="chart-period">{PERIODS[period]}</p>
           </article>
 
           <article className="tire-progress-card">
             <div className="tire-progress-header">
-              <h2>Mes Pneus</h2>
+              <h2>Mes Pneus </h2>
             </div>
 
             {tyreWear.length === 0 ? (
@@ -198,9 +302,20 @@ export default function ProgressPage() {
                   const pct = tyre.wear_percent;
                   const barColor = pct >= 80 ? "#ff6b6b" : pct >= 50 ? "#ffa500" : "#ffe600";
                   return (
-                    <div key={i} className="tyre-row">
+                    <div
+                      key={i}
+                      className={`tyre-row${tyre.catalogue_id ? " tyre-row-clickable" : ""}`}
+                      onClick={() => tyre.catalogue_id && navigate(`/catalogue/${tyre.catalogue_id}`)}
+                    >
                       <div className="tyre-row-icon">
-                        <CircleDot size={28} color="#ffe600" />
+                        <h1>{tyre.pic}</h1>
+                        {(
+                          <img
+                            src={tyre.pic || tyre.pic1}
+                            alt={tyre.tyre_name}
+                            className="tyre-row-img"
+                          />
+                        )}
                       </div>
                       <div className="tyre-row-info">
                         <div className="tyre-row-header">
@@ -234,38 +349,91 @@ export default function ProgressPage() {
           </article>
         </section>
 
-        <section className="badges-card">
+        <section className="progress-rides-card">
           <div className="section-title">
-            <h2>Badges &amp; Récompenses</h2>
+            <h2>Mes rides récents</h2>
             <span />
           </div>
 
-          <div className="badges-grid">
-            {BADGES.map((badge) => {
-              const earned = summary ? badge.check(summary) : false;
-              const progress = summary ? badge.getProgress(summary) : null;
-              const Icon = badge.icon;
+          <div className="rides-table">
+            <div className="rides-head">
+              <span></span>
+              <span>Date ↓</span>
+              <span>Distance</span>
+              <span>Durée</span>
+              <span>Terrain</span>
+              <span>Dénivelé</span>
+              <span>Pneu utilisé</span>
+              <span>Note</span>
+            </div>
+
+            {recentRides.length === 0 && (
+                <p className="remaining-text">
+                  Pas encore de sortie. Lance-toi avec le bouton « Nouvelle sortie ».
+                </p>
+            )}
+
+            {recentRides.map((ride) => {
+              const tyre = tyreByBikeId.get(ride.bike_id);
+              const TerrainIcon = TERRAIN_ICON[ride.type] || Bike;
 
               return (
+                <div
+                  className="rides-row rides-row-clickable"
+                  key={ride.id}
+                  onClick={() => navigate(`/activites/${ride.id}`)}
+                >
+                  <span className="ride-bike-icon"><Bike size={20} /></span>
+                  <div className="date-cell">{formatDate(ride.started_at)}</div>
+                  <span>{ride.distance_km ?? "—"} km</span>
+                  <span>{formatDuration(ride.duration_seconds)}</span>
+                  <span className="terrain-cell">
+                    <TerrainIcon size={16} className="terrain-icon" />
+                    {TYPE_LABELS[ride.type] || ride.type}
+                  </span>
+                  <span>{ride.elevation_m ? `${ride.elevation_m} m` : "—"}</span>
+                  <span className="tire-used">
+                    {tyre ? <>MICHELIN&nbsp;<strong>{tyre.model}</strong></> : "—"}
+                  </span>
+                  <StarRating value={ride.rating} />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+      <section className="badges-card">
+        <div className="section-title">
+          <h2>Badges &amp; Récompenses</h2>
+          <span />
+        </div>
+
+        <div className="badges-grid">
+          {BADGES.map((badge) => {
+            const earned = summary ? badge.check(summary) : false;
+            const progress = summary ? badge.getProgress(summary) : null;
+            const Icon = badge.icon;
+
+            return (
                 <div className={`badge-item ${earned ? "earned" : "locked"}`} key={badge.id}>
                   <div className="badge-icon">
                     <Icon size={26} />
                   </div>
                   <strong>{badge.label}</strong>
                   {earned ? (
-                    <span className="badge-unlocked">Débloqué ✓</span>
+                      <span className="badge-unlocked">Débloqué ✓</span>
                   ) : progress ? (
-                    <span className="badge-progress">
+                      <span className="badge-progress">
                       {progress.unit === "km"
-                        ? `${progress.current.toLocaleString("fr-FR")} / ${progress.goal} km`
-                        : `${progress.current} / ${progress.goal} ${progress.unit}`}
+                          ? `${progress.current.toLocaleString("fr-FR")} / ${progress.goal} km`
+                          : `${progress.current} / ${progress.goal} ${progress.unit}`}
                     </span>
                   ) : null}
                 </div>
-              );
-            })}
-          </div>
-        </section>
+            );
+          })}
+        </div>
+      </section>
     </section>
   );
 }

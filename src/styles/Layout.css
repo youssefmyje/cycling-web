@@ -1,6 +1,6 @@
 :root {
-  --yellow: #ffe600;
-  --yellow-dark: #d8c800;
+  --yellow: #fce500;
+  --yellow-dark: #e0cf00;
   --border: #2c2c2c;
   --text: #ffffff;
   --muted: #a8a8a8;
@@ -11,12 +11,12 @@
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at top center, rgba(255, 230, 0, 0.07), transparent 25%),
+    radial-gradient(circle at top center, rgba(252, 229, 0, 0.07), transparent 25%),
     radial-gradient(circle at center, #171717 0%, #000 58%);
   color: var(--text);
   display: grid;
   grid-template-columns: 250px 1fr;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Noto Sans', system-ui, -apple-system, sans-serif;
 }
 
 .app-layout-content {
@@ -37,6 +37,7 @@
     height: auto;
     min-height: 100vh;
     overflow: visible;
+    padding-top: 60px;
     padding-bottom: 72px;
   }
 
