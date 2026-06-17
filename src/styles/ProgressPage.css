@@ -1,166 +1,11 @@
-:root {
-  --yellow: #ffe600;
-  --yellow-dark: #d8c800;
-  --black: #050505;
-  --panel: #111111;
-  --border: #2c2c2c;
-  --text: #ffffff;
-  --muted: #a8a8a8;
-}
-
-/* PAGE */
-
-.progress-page {
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top center, rgba(255, 230, 0, 0.07), transparent 25%),
-    radial-gradient(circle at center, #171717 0%, #000 58%);
-  color: var(--text);
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-}
-
-/* SIDEBAR */
-
-.progress-sidebar {
-  height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 22%),
-    linear-gradient(180deg, #0f0f0f, #050505);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 26px 0 18px;
-}
-
-.progress-logo {
-  padding-left: 46px;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 26px;
-}
-
-.progress-logo-m {
-  color: var(--yellow);
-  font-size: 58px;
-  font-weight: 1000;
-  line-height: 0.74;
-  font-style: italic;
-  letter-spacing: -7px;
-}
-
-.progress-logo-text {
-  color: #ffffff;
-  font-size: 17px;
-  font-weight: 950;
-  line-height: 1;
-  font-style: italic;
-}
-
-.progress-logo-subtitle {
-  color: var(--yellow);
-  font-size: 17px;
-  font-weight: 950;
-  line-height: 1;
-  margin-left: 58px;
-  font-style: italic;
-}
-
-.progress-menu {
-  display: flex;
-  flex-direction: column;
-}
-
-.progress-menu button,
-.progress-logout {
-  width: 100%;
-  height: 53px;
-  border: none;
-  background: transparent;
-  color: #cfcfcf;
-  font-size: 16px;
-  font-weight: 750;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 0 34px;
-  cursor: pointer;
-  border-left: 4px solid transparent;
-  font-family: inherit;
-}
-
-.progress-menu button svg,
-.progress-logout svg {
-  color: #dcdcdc;
-}
-
-.progress-menu button:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.055);
-}
-
-.progress-menu button:hover svg {
-  color: #ffffff;
-}
-
-.progress-menu .active {
-  color: var(--yellow);
-  background: rgba(255, 255, 255, 0.04);
-  border-left-color: var(--yellow);
-}
-
-.progress-menu .active svg {
-  color: var(--yellow);
-}
-
-.progress-user-box {
-  margin-top: auto;
-  padding: 18px 22px;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  border-top: 1px solid var(--border);
-}
-
-.progress-user-box img {
-  width: 44px;
-  height: 44px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 2px solid var(--yellow);
-}
-
-.progress-user-box strong {
-  display: block;
-  color: white;
-  font-size: 14px;
-  line-height: 1.1;
-}
-
-.progress-user-box span {
-  display: block;
-  color: var(--yellow);
-  font-size: 12px;
-  font-weight: 850;
-  margin-top: 4px;
-}
-
-.progress-logout {
-  height: 52px;
-}
-
 /* CONTENT */
 
 .progress-content {
-  height: 100vh;
-  overflow: hidden;
+  height: 100%;
+  overflow-y: auto;
   padding: 18px 28px 14px;
   display: grid;
-  grid-template-rows: 42px 88px minmax(0, 1fr);
+  grid-template-rows: 42px 88px minmax(0, 1fr) auto;
   row-gap: 12px;
 }
 
@@ -444,129 +289,183 @@
   color: var(--yellow);
 }
 
-.tire-progress-content {
+.tyre-list {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 0.9fr 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.tyre-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.tyre-row-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 230, 0, 0.08);
+  display: flex;
   align-items: center;
-  gap: 18px;
+  justify-content: center;
 }
 
-.tire-progress-image {
-  height: 240px;
-  max-height: 240px;
-  border-radius: 12px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at center, rgba(255, 230, 0, 0.12), transparent 60%),
-    #090909;
-}
-
-.tire-progress-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 10px;
-}
-
-.tire-progress-info {
+.tyre-row-info {
+  flex: 1;
   min-width: 0;
 }
 
-.tire-progress-info h3 {
-  margin: 0 0 10px;
-  font-size: 20px;
-  line-height: 1.05;
-  font-weight: 1000;
-  font-style: italic;
-}
-
-.wear-circle {
-  width: 125px;
-  height: 125px;
-  margin-bottom: 8px;
-}
-
-.wear-circle-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  padding: 13px;
-}
-
-.wear-circle-inner > div {
-  width: 100%;
-  height: 100%;
-  background: #111;
-  border-radius: 50%;
+.tyre-row-header {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tyre-row-header strong {
+  font-size: 14px;
+  font-weight: 950;
   color: white;
 }
 
-.wear-circle-inner strong {
-  font-size: 25px;
-  line-height: 1;
-  font-weight: 1000;
+.tyre-status-badge {
+  font-size: 10.5px;
+  font-weight: 850;
+  padding: 3px 9px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.wear-circle-inner span {
-  color: #d0d0d0;
+.tyre-status-ok { background: rgba(0, 200, 100, 0.14); color: #4ade80; }
+.tyre-status-monitor { background: rgba(255, 165, 0, 0.14); color: #ffa500; }
+.tyre-status-replace_soon { background: rgba(255, 100, 100, 0.14); color: #ff6b6b; }
+
+.tyre-wear-bar-track {
+  height: 7px;
+  background: #2a2a2a;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.tyre-wear-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.tyre-row-km {
+  display: flex;
+  justify-content: space-between;
   font-size: 11px;
-  font-weight: 700;
+  color: #999;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
-.wear-text {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.wear-text strong {
-  color: var(--yellow);
-  font-size: 27px;
-  font-weight: 1000;
-}
-
-.wear-text span {
-  color: white;
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.tire-alert {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 12px;
-  color: var(--yellow);
-  font-size: 11.5px;
-  font-weight: 800;
-}
-
-.tire-progress-info button {
+.tyre-cta-btn {
+  flex-shrink: 0;
   height: 38px;
   border: none;
   border-radius: 9px;
   background: var(--yellow);
   color: #111;
-  padding: 0 13px;
-  font-size: 12.5px;
+  padding: 0 14px;
+  font-size: 13px;
   font-weight: 950;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   white-space: nowrap;
+  margin-top: 4px;
+  font-family: inherit;
 }
 
-.tire-progress-info button svg {
-  width: 18px;
-  height: 18px;
+/* BADGES */
+
+.badges-card {
+  padding: 16px 22px 18px;
+}
+
+.badges-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.badge-item {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(180deg, #151515, #0a0a0a);
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.badge-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  color: #666;
+}
+
+.badge-item strong {
+  font-size: 14px;
+  font-weight: 900;
+  color: #aaa;
+}
+
+.badge-item span {
+  font-size: 11px;
+  color: #888;
+}
+
+.badge-progress {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 750;
+}
+
+.badge-unlocked {
+  font-size: 11px;
+  color: var(--yellow) !important;
+  font-weight: 800 !important;
+}
+
+.badge-item.earned .badge-icon {
+  border-color: var(--yellow-dark);
+  color: var(--yellow);
+  box-shadow: 0 0 14px rgba(255, 230, 0, 0.3);
+}
+
+.badge-item.earned strong {
+  color: white;
+}
+
+.badge-item.earned span {
+  color: var(--yellow);
+  font-weight: 700;
 }
 
 /* LOADING */
@@ -580,20 +479,6 @@
 /* PETIT WEB */
 
 @media (max-width: 1300px) {
-  .progress-page {
-    grid-template-columns: 220px 1fr;
-  }
-
-  .progress-logo {
-    padding-left: 36px;
-  }
-
-  .progress-menu button,
-  .progress-logout {
-    font-size: 15px;
-    padding: 0 26px;
-  }
-
   .progress-stat-card {
     grid-template-columns: 52px 1fr;
   }
@@ -611,81 +496,87 @@
   }
 }
 
-/* MOBILE */
+/* ===================== MOBILE (≤ 768px) ===================== */
 
-@media (max-width: 900px) {
-  .progress-page {
-    display: block;
-    height: auto;
-    min-height: 100vh;
-    overflow: auto;
-  }
-
-  .progress-sidebar {
-    display: none;
-  }
+@media (max-width: 768px) {
 
   .progress-content {
     height: auto;
     overflow: visible;
-    padding: 28px 18px;
-    display: block;
+    padding: 20px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
 
   .progress-header {
     height: auto;
-    align-items: flex-start;
-    gap: 16px;
     flex-direction: column;
-    margin-bottom: 18px;
+    align-items: flex-start;
+    gap: 12px;
   }
 
   .progress-header h1 {
-    font-size: 34px;
+    font-size: 26px;
   }
 
   .progress-stats {
     height: auto;
-    grid-template-columns: 1fr;
-    margin-bottom: 18px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* La 3ème stat prend toute la largeur */
+  .progress-stat-card:last-child {
+    grid-column: 1 / -1;
   }
 
   .progress-stat-card {
-    height: 100px;
-    grid-template-columns: 56px 1fr;
+    height: 88px;
+    grid-template-columns: 52px 1fr;
+  }
+
+  .mini-line {
+    display: none;
   }
 
   .progress-main-grid {
     height: auto;
     grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .km-chart-card,
   .tire-progress-card {
     height: auto;
-    min-height: 430px;
-    margin-bottom: 18px;
+    min-height: 380px;
   }
 
   .chart-area {
-    height: 300px;
-    min-height: 300px;
+    height: 260px;
+    min-height: 260px;
+  }
+
+  .bars-area {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bar-column {
+    min-width: 16px;
   }
 
   .tire-progress-content {
     height: auto;
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .tire-progress-image {
-    height: 260px;
+    height: 200px;
   }
 
-  .bars-area {
-    overflow-x: auto;
-  }
-
-  .bar-column {
-    min-width: 18px;
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

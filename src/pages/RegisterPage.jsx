@@ -4,8 +4,6 @@ import { User, Mail, Lock, Bike, UserPlus } from "lucide-react";
 import "../styles/AuthPage.css";
 import { authApi } from "../services/api";
 
-const API_URL = "http://localhost:5000/api/auth/register";
-
 export default function RegisterPage() {
   const navigate = useNavigate();
 

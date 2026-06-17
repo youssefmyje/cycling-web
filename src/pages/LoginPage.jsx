@@ -4,8 +4,6 @@ import { Mail, Lock, LogIn, Bike } from "lucide-react";
 import "../styles/AuthPage.css";
 import { authApi } from "../services/api";
 
-const API_URL = "http://localhost:5000/api/auth/login";
-
 export default function LoginPage() {
   const navigate = useNavigate();
 

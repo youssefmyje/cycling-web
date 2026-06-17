@@ -1,276 +1,214 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { logout } from "../services/api";
+import { useCallback, useEffect, useState } from "react";
 import {
-  Home,
-  BarChart3,
-  Users,
-  Settings,
-  LogOut,
-  User,
   ShieldCheck,
   Bike,
   Medal,
   Pencil,
   Save,
   X,
-  MoreHorizontal,
   CircleDot,
   Mountain,
   Route,
   Zap,
   Sun,
-  Infinity,
-  Activity,
+  Plus,
 } from "lucide-react";
+import { getUser, profileApi, progressApi } from "../services/api";
 import "../styles/ProfilePage.css";
 
-const API_URL = "http://localhost:5000/api/profile";
+const RIDER_TYPE_LABELS = { route: "Route", gravel: "Gravel", mtb: "VTT", urban: "Urbain" };
+const TERRAIN_LABELS = {
+  route: "Route",
+  road: "Route",
+  gravel: "Gravel",
+  mtb: "VTT",
+  urban: "Urbain",
+  city: "Urbain",
+  ebike: "E-bike",
+};
+const PRIORITY_LABELS = {
+  performance: "Performance",
+  durability: "Durabilité",
+  puncture_protection: "Anti-crevaison",
+  grip: "Grip",
+  long_distance: "Longue distance",
+  racing: "Compétition",
+  endurance: "Endurance",
+  all_road: "Tout-terrain",
+  touring: "Voyage",
+  trekking: "Trekking",
+  urban: "Urbain",
+  cross_country: "Cross-country",
+  trail: "Trail",
+  enduro: "Enduro",
+  downhill: "Descente",
+  competition: "Compétition",
+  access: "Access",
+};
+const WEATHER_LABELS = { dry: "Temps sec", wet: "Temps humide", mixed: "Tout temps" };
 
-const defaultTires = [
-  {
-    id: 1,
-    brand: "MICHELIN",
-    model: "POWER CUP",
-    size: "700x25C",
-    usageKm: 620,
-    rating: 5,
-    imageUrl:
-      "https://images.unsplash.com/photo-1620885346497-7273e1cf0c4b?q=80&w=800",
-  },
-  {
-    id: 2,
-    brand: "MICHELIN",
-    model: "POWER ROAD",
-    size: "700x28C",
-    usageKm: 1150,
-    rating: 4.5,
-    imageUrl:
-      "https://images.unsplash.com/photo-1610647752706-3bb12232b3a8?q=80&w=800",
-  },
-];
+const today = () => new Date().toISOString().slice(0, 10);
 
 export default function ProfilePage() {
-  const navigate = useNavigate();
+  const user = getUser();
 
-  const [profile, setProfile] = useState({
-    firstName: "Youssef",
-    lastName: "M.",
-    badge: "Rider Route Niveau 4",
-    totalKm: 1240,
-    rides: 28,
-    badges: 8,
-    photoUrl:
-      "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=600",
-    bikeName: "Trek Emonda SL",
-    bikeType: "Route",
-    bikeImageUrl:
-      "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=1200",
-    tires: defaultTires,
-  });
+  const [loading, setLoading] = useState(Boolean(user?.id));
+  const [profile, setProfile] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [bikes, setBikes] = useState([]);
+  const [selectedBikeId, setSelectedBikeId] = useState(null);
 
   const [editMode, setEditMode] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [editForm, setEditForm] = useState({ bio: "", riderType: "route" });
+
+  const [showAddBike, setShowAddBike] = useState(false);
+  const [bikeForm, setBikeForm] = useState({ brand: "", model: "", category: "route", wheelSize: "" });
+
+  const [showAddTyre, setShowAddTyre] = useState(false);
+  const [tyreForm, setTyreForm] = useState({
+    brand: "Michelin",
+    model: "",
+    size: "",
+    mountedAt: today(),
+    estimatedLifespanKm: "",
+  });
+
+  const loadEquipment = useCallback(() => {
+    if (!user?.id) return;
+    profileApi.getBikes(user.id).then((res) => {
+      const items = res.data.items || [];
+      setBikes(items);
+      setSelectedBikeId((current) => current || items[0]?.id || null);
+    });
+  }, [user?.id]);
 
   useEffect(() => {
-    getProfile();
-  }, []);
+    if (!user?.id) return;
 
-  const getProfile = async () => {
-    try {
-      const response = await fetch(API_URL);
-
-      if (!response.ok) {
-        throw new Error("Backend non disponible");
+    Promise.allSettled([profileApi.get(user.id), progressApi.summary()]).then(
+      ([profileRes, summaryRes]) => {
+        if (profileRes.status === "fulfilled") {
+          const data = profileRes.value.data;
+          setProfile(data);
+          setEditForm({ bio: data.bio || "", riderType: data.rider_type || "route" });
+        }
+        if (summaryRes.status === "fulfilled") setSummary(summaryRes.value.data);
+        setLoading(false);
       }
+    );
 
-      const data = await response.json();
-
-      setProfile({
-        firstName: data.firstName || "Souhail",
-        lastName: data.lastName || "C.",
-        badge: data.badge || "Rider Route Niveau 4",
-        totalKm: data.totalKm ?? 1240,
-        rides: data.rides ?? 28,
-        badges: data.badges ?? 8,
-        photoUrl:
-          data.photoUrl ||
-          "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=600",
-        bikeName: data.bikeName || "Trek Emonda SL",
-        bikeType: data.bikeType || "Route",
-        bikeImageUrl:
-          data.bikeImageUrl ||
-          "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=1200",
-        tires: data.tires?.length ? data.tires : defaultTires,
-      });
-    } catch (error) {
-      console.warn("Données temporaires utilisées :", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (field, value) => {
-    setProfile((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleTireChange = (index, field, value) => {
-    setProfile((prev) => {
-      const updatedTires = [...prev.tires];
-
-      updatedTires[index] = {
-        ...updatedTires[index],
-        [field]: value,
-      };
-
-      return {
-        ...prev,
-        tires: updatedTires,
-      };
-    });
-  };
+    loadEquipment();
+  }, [user?.id, loadEquipment]);
 
   const saveProfile = async () => {
-    const payload = {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      bikeName: profile.bikeName,
-      bikeType: profile.bikeType,
-      bikeImageUrl: profile.bikeImageUrl,
-      tires: profile.tires.map((tire) => ({
-        id: tire.id,
-        brand: tire.brand,
-        model: tire.model,
-        size: tire.size,
-        imageUrl: tire.imageUrl,
-      })),
-    };
-
     try {
-      const response = await fetch(API_URL, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const res = await profileApi.update(user.id, {
+        bio: editForm.bio,
+        rider_type: editForm.riderType,
       });
-
-      if (!response.ok) {
-        throw new Error("Erreur sauvegarde");
-      }
-
+      setProfile(res.data);
       setEditMode(false);
-      getProfile();
     } catch (error) {
-      console.warn(
-        "Backend non prêt, modification gardée côté front :",
-        error.message
-      );
-      setEditMode(false);
+      console.error("Erreur mise à jour profil :", error.message);
     }
   };
 
-  const renderStars = (rating) => {
-    const rounded = Math.round(Number(rating) || 0);
-    return "★".repeat(rounded) + "☆".repeat(5 - rounded);
+  const submitBike = async (event) => {
+    event.preventDefault();
+    try {
+      await profileApi.addBike(user.id, {
+        brand: bikeForm.brand,
+        model: bikeForm.model,
+        category: bikeForm.category,
+        wheel_size: bikeForm.wheelSize || undefined,
+      });
+      setBikeForm({ brand: "", model: "", category: "route", wheelSize: "" });
+      setShowAddBike(false);
+      loadEquipment();
+    } catch (error) {
+      console.error("Erreur ajout vélo :", error.message);
+    }
+  };
+
+  const submitTyre = async (event) => {
+    event.preventDefault();
+    if (!selectedBikeId) return;
+    try {
+      await profileApi.addMountedTyre(user.id, {
+        bike_id: selectedBikeId,
+        brand: tyreForm.brand,
+        model: tyreForm.model,
+        size: tyreForm.size,
+        mounted_at: tyreForm.mountedAt,
+        estimated_lifespan_km: Number(tyreForm.estimatedLifespanKm),
+      });
+      setTyreForm({ brand: "Michelin", model: "", size: "", mountedAt: today(), estimatedLifespanKm: "" });
+      setShowAddTyre(false);
+      loadEquipment();
+    } catch (error) {
+      console.error("Erreur ajout pneu :", error.message);
+    }
   };
 
   if (loading) {
-    return (
-      <main className="dashboard-page">
-        <p className="loading-text">Chargement...</p>
-      </main>
-    );
+    return <p className="loading-text">Chargement...</p>;
   }
 
+  const selectedBike = bikes.find((bike) => bike.id === selectedBikeId) || bikes[0];
+
+  const rawUsageTags = [
+    ...(profile?.preferences?.terrains || []).map((value) => ({
+      label: TERRAIN_LABELS[value] || value,
+      icon: Route,
+    })),
+    ...(profile?.preferences?.priorities || []).map((value) => ({
+      label: PRIORITY_LABELS[value] || value,
+      icon: Zap,
+    })),
+    ...(profile?.preferences?.weather_preferences || []).map((value) => ({
+      label: WEATHER_LABELS[value] || value,
+      icon: Sun,
+    })),
+  ];
+  const usageTags = rawUsageTags.filter(
+    (tag, index) => rawUsageTags.findIndex((other) => other.label === tag.label) === index
+  );
+
   return (
-    <main className="dashboard-page">
-      <aside className="sidebar">
-        <div className="logo">
-          <span className="logo-m">M</span>
-          <span className="logo-text">MICHELIN</span>
-          <span className="logo-subtitle">RIDING</span>
-        </div>
-
-        <nav className="side-menu">
-          <button onClick={() => navigate("/")}>
-            <Home size={22} />
-            Accueil
-          </button>
-
-          <button onClick={() => navigate("/communaute")}>
-            <Users size={24} />
-            Communauté
-          </button>
-
-          <button onClick={() => navigate("/progres")}>
-            <BarChart3 size={22} />
-            Activité
-          </button>
-
-          <button className="active">
-            <User size={22} />
-            Mon Profil
-          </button>
-
-          <button>
-            <Settings size={22} />
-            Paramètres
-          </button>
-        </nav>
-
-        <button
-  className="home-logout"
-  onClick={() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  }}
->
-  <LogOut size={22} />
-  Déconnexion
-</button>
-      </aside>
+    <div className="profile-grid">
 
       <section className="profile-panel">
         <div className="profile-avatar-wrapper">
-          <img src={profile.photoUrl} alt="Profil" className="profile-avatar" />
+          <img
+            src={
+              profile?.avatar_url ||
+              "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=600"
+            }
+            alt="Profil"
+            className="profile-avatar"
+          />
         </div>
 
-        {!editMode ? (
-          <h1>
-            {profile.firstName} {profile.lastName}
-          </h1>
-        ) : (
-          <div className="name-edit">
-            <input
-              value={profile.firstName}
-              onChange={(e) => handleChange("firstName", e.target.value)}
-              placeholder="Prénom"
-            />
-
-            <input
-              value={profile.lastName}
-              onChange={(e) => handleChange("lastName", e.target.value)}
-              placeholder="Nom"
-            />
-          </div>
-        )}
+        <h1>
+          {user.first_name} {user.last_name}
+        </h1>
 
         <div className="profile-badge">
           <ShieldCheck size={18} />
-          {profile.badge}
+          Rider {RIDER_TYPE_LABELS[profile?.rider_type] || profile?.rider_type} — Niveau{" "}
+          {user.level ?? 1}
         </div>
+
+        {!editMode && profile?.bio && (
+          <p className="profile-bio-display">{profile.bio}</p>
+        )}
 
         <div className="profile-divider" />
 
         <div className="stats-row">
           <div className="stat">
             <Mountain className="stat-icon" />
-            <strong>{profile.totalKm.toLocaleString("fr-FR")} km</strong>
+            <strong>{(profile?.stats?.total_km ?? 0).toLocaleString("fr-FR")} km</strong>
             <small>total</small>
           </div>
 
@@ -278,7 +216,7 @@ export default function ProfilePage() {
 
           <div className="stat">
             <Bike className="stat-icon" />
-            <strong>{profile.rides}</strong>
+            <strong>{profile?.stats?.total_rides ?? 0}</strong>
             <small>rides</small>
           </div>
 
@@ -286,7 +224,7 @@ export default function ProfilePage() {
 
           <div className="stat">
             <Medal className="stat-icon" />
-            <strong>{profile.badges}</strong>
+            <strong>{summary?.badges_count ?? 0}</strong>
             <small>badges</small>
           </div>
         </div>
@@ -297,23 +235,45 @@ export default function ProfilePage() {
             Modifier le profil
           </button>
         ) : (
-          <div className="profile-actions">
-            <button className="save-btn" onClick={saveProfile}>
-              <Save size={19} />
-              Enregistrer
-            </button>
+          <>
+            <textarea
+              className="bio-edit"
+              value={editForm.bio}
+              onChange={(e) => setEditForm((prev) => ({ ...prev, bio: e.target.value }))}
+              placeholder="Quelques mots sur ta pratique du vélo..."
+              rows={3}
+            />
 
-            <button
-              className="cancel-btn"
-              onClick={() => {
-                setEditMode(false);
-                getProfile();
-              }}
+            <select
+              className="rider-type-edit"
+              value={editForm.riderType}
+              onChange={(e) => setEditForm((prev) => ({ ...prev, riderType: e.target.value }))}
             >
-              <X size={19} />
-              Annuler
-            </button>
-          </div>
+              {Object.entries(RIDER_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+
+            <div className="profile-actions">
+              <button className="save-btn" onClick={saveProfile}>
+                <Save size={19} />
+                Enregistrer
+              </button>
+
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setEditMode(false);
+                  setEditForm({ bio: profile?.bio || "", riderType: profile?.rider_type || "route" });
+                }}
+              >
+                <X size={19} />
+                Annuler
+              </button>
+            </div>
+          </>
         )}
       </section>
 
@@ -324,38 +284,74 @@ export default function ProfilePage() {
             <div className="title-line" />
           </div>
 
-          <button className="more-btn">
-            <MoreHorizontal size={26} />
-          </button>
+          {bikes.length > 1 && (
+            <div className="bike-switcher">
+              {bikes.map((bike) => (
+                <button
+                  key={bike.id}
+                  className={bike.id === selectedBike?.id ? "active" : ""}
+                  onClick={() => setSelectedBikeId(bike.id)}
+                >
+                  {bike.brand}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="bike-block">
-          <img src={profile.bikeImageUrl} alt="Vélo" className="bike-image" />
-
-          {!editMode ? (
-            <h3>
-              {profile.bikeName} — {profile.bikeType}
-            </h3>
+          {selectedBike ? (
+            <>
+              <Bike size={96} className="bike-placeholder-icon" />
+              <h3>
+                {selectedBike.brand} {selectedBike.model} — {RIDER_TYPE_LABELS[selectedBike.category] || selectedBike.category}
+              </h3>
+            </>
+          ) : showAddBike ? (
+            <form className="bike-edit" onSubmit={submitBike}>
+              <input
+                value={bikeForm.brand}
+                onChange={(e) => setBikeForm((prev) => ({ ...prev, brand: e.target.value }))}
+                placeholder="Marque (ex: Trek)"
+                required
+              />
+              <input
+                value={bikeForm.model}
+                onChange={(e) => setBikeForm((prev) => ({ ...prev, model: e.target.value }))}
+                placeholder="Modèle (ex: Emonda SL)"
+                required
+              />
+              <select
+                value={bikeForm.category}
+                onChange={(e) => setBikeForm((prev) => ({ ...prev, category: e.target.value }))}
+              >
+                {Object.entries(RIDER_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={bikeForm.wheelSize}
+                onChange={(e) => setBikeForm((prev) => ({ ...prev, wheelSize: e.target.value }))}
+                placeholder="Taille de roue (ex: 700c)"
+              />
+              <div className="profile-actions">
+                <button className="save-btn" type="submit">
+                  <Save size={18} />
+                  Ajouter
+                </button>
+                <button className="cancel-btn" type="button" onClick={() => setShowAddBike(false)}>
+                  <X size={18} />
+                  Annuler
+                </button>
+              </div>
+            </form>
           ) : (
-            <div className="bike-edit">
-              <input
-                value={profile.bikeName}
-                onChange={(e) => handleChange("bikeName", e.target.value)}
-                placeholder="Nom du vélo"
-              />
-
-              <input
-                value={profile.bikeType}
-                onChange={(e) => handleChange("bikeType", e.target.value)}
-                placeholder="Type du vélo"
-              />
-
-              <input
-                value={profile.bikeImageUrl}
-                onChange={(e) => handleChange("bikeImageUrl", e.target.value)}
-                placeholder="URL image vélo"
-              />
-            </div>
+            <button className="add-equipment-btn" onClick={() => setShowAddBike(true)}>
+              <Plus size={20} />
+              Ajouter un vélo
+            </button>
           )}
         </div>
 
@@ -366,103 +362,97 @@ export default function ProfilePage() {
           Mes pneus Michelin
         </h3>
 
-        <div className="tires-grid">
-          {profile.tires.map((tire, index) => (
-            <article className="tire-card" key={tire.id || index}>
-              <div className="tire-image-wrapper">
-                {tire.imageUrl ? (
-                  <img
-                    src={tire.imageUrl}
-                    alt={tire.model}
-                    className="tire-image"
-                  />
-                ) : (
+        {selectedBike ? (
+          <div className="tires-grid">
+            {selectedBike.mounted_tyres?.map((tyre) => (
+              <article className="tire-card" key={tyre.id}>
+                <div className="tire-image-wrapper">
                   <div className="tire-fallback">
-                    <CircleDot size={82} />
+                    <CircleDot size={64} />
                   </div>
-                )}
-              </div>
-
-              {!editMode ? (
-                <>
-                  <p className="tire-brand">{tire.brand}</p>
-                  <h4>{tire.model}</h4>
-                  <p className="tire-size">{tire.size}</p>
-
-                  <div className="tire-separator" />
-
-                  <p className="usage-label">Utilisation</p>
-                  <strong className="usage-value">
-                    {Number(tire.usageKm || 0).toLocaleString("fr-FR")} km
-                  </strong>
-
-                  <div className="stars">{renderStars(tire.rating)}</div>
-                </>
-              ) : (
-                <div className="tire-edit">
-                  <input
-                    value={tire.brand}
-                    onChange={(e) =>
-                      handleTireChange(index, "brand", e.target.value)
-                    }
-                    placeholder="Marque"
-                  />
-
-                  <input
-                    value={tire.model}
-                    onChange={(e) =>
-                      handleTireChange(index, "model", e.target.value)
-                    }
-                    placeholder="Modèle"
-                  />
-
-                  <input
-                    value={tire.size}
-                    onChange={(e) =>
-                      handleTireChange(index, "size", e.target.value)
-                    }
-                    placeholder="Taille"
-                  />
-
-                  <input
-                    value={tire.imageUrl}
-                    onChange={(e) =>
-                      handleTireChange(index, "imageUrl", e.target.value)
-                    }
-                    placeholder="URL image pneu"
-                  />
                 </div>
-              )}
-            </article>
-          ))}
-        </div>
+
+                <p className="tire-brand">{tyre.brand}</p>
+                <h4>{tyre.model}</h4>
+                <p className="tire-size">{tyre.size}</p>
+
+                <div className="tire-separator" />
+
+                <p className="usage-label">Durée de vie estimée</p>
+                <strong className="usage-value">
+                  {Number(tyre.estimated_lifespan_km).toLocaleString("fr-FR")} km
+                </strong>
+              </article>
+            ))}
+
+            {showAddTyre ? (
+              <form className="tire-card tire-edit-form" onSubmit={submitTyre}>
+                <input
+                  value={tyreForm.model}
+                  onChange={(e) => setTyreForm((prev) => ({ ...prev, model: e.target.value }))}
+                  placeholder="Modèle (ex: Power Cup 2)"
+                  required
+                />
+                <input
+                  value={tyreForm.size}
+                  onChange={(e) => setTyreForm((prev) => ({ ...prev, size: e.target.value }))}
+                  placeholder="Taille (ex: 700x28)"
+                  required
+                />
+                <input
+                  type="date"
+                  value={tyreForm.mountedAt}
+                  onChange={(e) => setTyreForm((prev) => ({ ...prev, mountedAt: e.target.value }))}
+                  required
+                />
+                <input
+                  type="number"
+                  value={tyreForm.estimatedLifespanKm}
+                  onChange={(e) =>
+                    setTyreForm((prev) => ({ ...prev, estimatedLifespanKm: e.target.value }))
+                  }
+                  placeholder="Durée de vie (km)"
+                  required
+                />
+                <div className="profile-actions">
+                  <button className="save-btn" type="submit">
+                    <Save size={16} />
+                  </button>
+                  <button className="cancel-btn" type="button" onClick={() => setShowAddTyre(false)}>
+                    <X size={16} />
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button className="add-equipment-btn tire-card" onClick={() => setShowAddTyre(true)}>
+                <Plus size={20} />
+                Ajouter un pneu
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="remaining-text">Ajoute d'abord un vélo pour pouvoir y monter des pneus.</p>
+        )}
 
         <div className="favorite-usages">
           <h3>Mes usages favoris</h3>
 
-          <div className="usage-tags">
-            <span>
-              <Route size={16} />
-              Route
-            </span>
-
-            <span>
-              <Infinity size={16} />
-              Longue distance
-            </span>
-
-            <span>
-              <Zap size={16} />
-              Performances
-            </span>
-
-            <span>
-              <Sun size={16} />
-              Temps sec
-            </span>
-          </div>
+          {usageTags.length > 0 ? (
+            <div className="usage-tags">
+              {usageTags.map(({ label, icon: Icon }, index) => (
+                <span key={`${label}-${index}`}>
+                  <Icon size={16} />
+                  {label}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="remaining-text">
+              Fais le test « Trouver mon pneu » pour définir tes préférences de pratique.
+            </p>
+          )}
         </div>
       </section>
-    </main>
+    </div>
   );
 }

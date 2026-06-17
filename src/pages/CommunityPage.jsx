@@ -1,259 +1,99 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../services/api";
 import {
-  Home,
-  Users,
-  Activity,
-  BarChart3,
-  User,
-  Settings,
-  LogOut,
   Search,
   Bell,
   ThumbsUp,
   MessageSquare,
-  MoreHorizontal,
+  Send,
   Trophy,
   Crown,
   Map,
   Mountain,
   Clock,
-  Star,
+  Users,
 } from "lucide-react";
+import { communityApi } from "../services/api";
 import "../styles/CommunityPage.css";
 
-const API_URL = "http://localhost:5000/api/community";
+function formatDuration(seconds) {
+  if (!seconds) return "—";
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+  return hours > 0 ? `${hours}h ${String(minutes).padStart(2, "0")}` : `${minutes} min`;
+}
 
-const defaultCommunityData = {
-  user: {
-    firstName: "Youssef",
-    lastName: "M.",
-    level: 28,
-    avatarUrl:
-      "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300",
-  },
-
-  posts: [
-    {
-      id: 1,
-      authorName: "Julien D.",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300",
-      date: "18 mai 2024 à 09:42",
-      routeTitle: "Col du Granier",
-      distance: "112,4 km",
-      elevation: "2 045 m",
-      duration: "4h 01m",
-      tireUsed: "Michelin Power Cup",
-      rating: 5,
-      likes: 128,
-      comments: 23,
-      verified: true,
-      mapImageUrl:
-        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=700",
-    },
-    {
-      id: 2,
-      authorName: "Camille R.",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300",
-      date: "17 mai 2024 à 16:18",
-      routeTitle: "Mont Ventoux",
-      distance: "89,7 km",
-      elevation: "1 910 m",
-      duration: "3h 28m",
-      tireUsed: "Michelin Power Cup",
-      rating: 5,
-      likes: 96,
-      comments: 18,
-      verified: false,
-      mapImageUrl:
-        "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=700",
-    },
-    {
-      id: 3,
-      authorName: "Thomas L.",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300",
-      date: "16 mai 2024 à 07:55",
-      routeTitle: "Gorges du Verdon",
-      distance: "132,6 km",
-      elevation: "2 432 m",
-      duration: "5h 12m",
-      tireUsed: "Michelin Power Cup",
-      rating: 5,
-      likes: 142,
-      comments: 31,
-      verified: false,
-      mapImageUrl:
-        "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=700",
-    },
-  ],
-
-  leaderboard: [
-    {
-      id: 1,
-      name: "Alexis B.",
-      distance: "732,5 km",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300",
-    },
-    {
-      id: 2,
-      name: "Léa M.",
-      distance: "598,3 km",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300",
-    },
-    {
-      id: 3,
-      name: "Nicolas P.",
-      distance: "541,7 km",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300",
-    },
-    {
-      id: 4,
-      name: "Mathieu G.",
-      distance: "487,2 km",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=300",
-    },
-    {
-      id: 5,
-      name: "Chloé T.",
-      distance: "451,9 km",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300",
-    },
-  ],
-};
+function formatDate(iso) {
+  if (!iso) return "—";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
 
 export default function CommunityPage() {
   const navigate = useNavigate();
-
-  const [communityData, setCommunityData] = useState(defaultCommunityData);
   const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [commentDrafts, setCommentDrafts] = useState({});
 
   useEffect(() => {
-    getCommunityData();
+    Promise.allSettled([communityApi.getFeed(20), communityApi.leaderboard(5)]).then(
+      ([feedRes, leaderboardRes]) => {
+        if (feedRes.status === "fulfilled") setPosts(feedRes.value.data.items || []);
+        if (leaderboardRes.status === "fulfilled") {
+          setLeaderboard(leaderboardRes.value.data.items || []);
+        }
+        setLoading(false);
+      }
+    );
   }, []);
 
-  const getCommunityData = async () => {
+  const openActivity = (post) => {
+    navigate(`/activites/${post.activity_id}`, {
+      state: { author: { displayName: post.user.display_name, avatarUrl: post.user.avatar_url } },
+    });
+  };
+
+  const toggleLike = async (post) => {
     try {
-      const response = await fetch(API_URL);
-
-      if (!response.ok) {
-        throw new Error("Backend non disponible");
-      }
-
-      const data = await response.json();
-
-      setCommunityData({
-        user: {
-          firstName: data.user?.firstName || defaultCommunityData.user.firstName,
-          lastName: data.user?.lastName || defaultCommunityData.user.lastName,
-          level: data.user?.level ?? defaultCommunityData.user.level,
-          avatarUrl:
-            data.user?.avatarUrl || defaultCommunityData.user.avatarUrl,
-        },
-
-        posts: data.posts?.length ? data.posts : defaultCommunityData.posts,
-
-        leaderboard: data.leaderboard?.length
-          ? data.leaderboard
-          : defaultCommunityData.leaderboard,
-      });
+      const res = await communityApi.like(post.activity_id);
+      setPosts((prev) =>
+        prev.map((item) =>
+          item.id === post.id ? { ...item, likes_count: res.data.likes_count } : item
+        )
+      );
     } catch (error) {
-      console.warn("Données temporaires utilisées :", error.message);
-    } finally {
-      setLoading(false);
+      console.error("Erreur like :", error.message);
     }
   };
 
-  const renderStars = (rating) => {
-    const stars = Math.round(Number(rating) || 0);
+  const submitComment = async (post) => {
+    const content = (commentDrafts[post.id] || "").trim();
+    if (!content) return;
 
-    return Array.from({ length: 5 }).map((_, index) => (
-      <Star
-        key={index}
-        size={16}
-        fill={index < stars ? "#FFE600" : "transparent"}
-        color={index < stars ? "#FFE600" : "#777"}
-      />
-    ));
+    try {
+      await communityApi.comment(post.activity_id, content);
+      setPosts((prev) =>
+        prev.map((item) =>
+          item.id === post.id ? { ...item, comments_count: item.comments_count + 1 } : item
+        )
+      );
+      setCommentDrafts((prev) => ({ ...prev, [post.id]: "" }));
+    } catch (error) {
+      console.error("Erreur commentaire :", error.message);
+    }
   };
 
   if (loading) {
-    return (
-      <main className="community-page">
-        <p className="community-loading">Chargement...</p>
-      </main>
-    );
+    return <p className="community-loading">Chargement...</p>;
   }
 
   return (
-    <main className="community-page">
-      <aside className="community-sidebar">
-        <div className="community-logo">
-          <span className="community-logo-m">M</span>
-          <span className="community-logo-text">MICHELIN</span>
-          <span className="community-logo-subtitle">RIDING</span>
-        </div>
-
-        <nav className="community-menu">
-          <button onClick={() => navigate("/")}>
-            <Home size={24} />
-            Accueil
-          </button>
-
-          <button className="active">
-            <Users size={24} />
-            Communauté
-          </button>
-
-          <button onClick={() => navigate("/progres")}>
-            <BarChart3 size={24} />
-            Activité
-          </button>
-
-          <button onClick={() => navigate("/profil")}>
-            <User size={24} />
-            Mon Profil
-          </button>
-
-          <button>
-            <Settings size={24} />
-            Paramètres
-          </button>
-        </nav>
-
-        <div className="community-user-box">
-          <img src={communityData.user.avatarUrl} alt="Utilisateur" />
-
-          <div>
-            <strong>
-              {communityData.user.firstName} {communityData.user.lastName}
-            </strong>
-            <span>Niveau {communityData.user.level}</span>
-          </div>
-        </div>
-
-        <button
-  className="home-logout"
-  onClick={() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  }}
->
-  <LogOut size={22} />
-  Déconnexion
-</button>
-      </aside>
-
-      <section className="community-content">
+    <section className="community-content">
         <header className="community-header">
           <div className="community-title">
             <Users size={34} />
@@ -275,82 +115,105 @@ export default function CommunityPage() {
         <section className="community-grid">
           <section className="feed-section">
             <div className="feed-title">
-              <h2>Fil d’actualités</h2>
+              <h2>Fil d'actualités</h2>
               <span />
             </div>
 
             <div className="posts-list">
-              {communityData.posts.map((post) => (
+              {posts.length === 0 && (
+                <p className="community-empty">
+                  Pas encore de sortie dans la communauté. Sois le premier à partager un ride !
+                </p>
+              )}
+
+              {posts.map((post) => (
                 <article className="post-card" key={post.id}>
-                  <div className="post-top">
+                  <div
+                    className="post-top post-top-clickable"
+                    onClick={() => openActivity(post)}
+                  >
                     <div className="post-author">
-                      <img src={post.authorAvatar} alt={post.authorName} />
+                      <img
+                        src={
+                          post.user.avatar_url ||
+                          "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300"
+                        }
+                        alt={post.user.display_name}
+                      />
 
                       <div>
-                        <strong>{post.authorName}</strong>
-                        <span>{post.date}</span>
+                        <strong>{post.user.display_name}</strong>
+                        <span>{formatDate(post.created_at)}</span>
                       </div>
                     </div>
 
-                    {post.verified && (
-                      <div className="verified-badge">
-                        Avis Vérifié Michelin
-                      </div>
+                    {post.verified_michelin_review && (
+                      <div className="verified-badge">Avis Vérifié Michelin</div>
                     )}
                   </div>
 
-                  <div className="post-main">
-                    <div className="post-info">
-                      <h3>{post.routeTitle}</h3>
+                  <div
+                    className="post-stats-row post-stats-row-clickable"
+                    onClick={() => openActivity(post)}
+                  >
+                    <span className="post-stat">
+                      <Map size={18} />
+                      <strong>{post.summary.distance_km ?? "—"} km</strong>
+                      <small>Distance</small>
+                    </span>
 
-                      <div className="post-stats">
-                        <span>
-                          <Map size={16} />
-                          {post.distance}
-                          <small>Distance</small>
-                        </span>
+                    <span className="post-stat">
+                      <Mountain size={18} />
+                      <strong>{post.summary.elevation_m ?? "—"} m</strong>
+                      <small>Dénivelé</small>
+                    </span>
 
-                        <span>
-                          <Mountain size={16} />
-                          {post.elevation}
-                          <small>Dénivelé</small>
-                        </span>
+                    <span className="post-stat">
+                      <Clock size={18} />
+                      <strong>{formatDuration(post.summary.duration_seconds)}</strong>
+                      <small>Durée</small>
+                    </span>
+                  </div>
 
-                        <span>
-                          <Clock size={16} />
-                          {post.duration}
-                          <small>Durée</small>
-                        </span>
-                      </div>
-
-                      <div className="post-tire">
-                        <span>Pneu : {post.tireUsed}</span>
-                        <div>{renderStars(post.rating)}</div>
-                      </div>
-                    </div>
-
-                    <div className="post-map">
-                      <img src={post.mapImageUrl} alt={post.routeTitle} />
-                      <div className="route-line" />
-                    </div>
+                  <div className="post-tire">
+                    <span>
+                      {post.summary.tyre_name
+                        ? `Pneu : ${post.summary.tyre_name}`
+                        : "Pneu non renseigné"}
+                    </span>
                   </div>
 
                   <div className="post-bottom">
                     <div className="post-reactions">
-                      <span>
+                      <span onClick={() => toggleLike(post)} role="button" tabIndex={0}>
                         <ThumbsUp size={18} />
-                        {post.likes}
+                        {post.likes_count}
                       </span>
 
                       <span>
                         <MessageSquare size={18} />
-                        {post.comments}
+                        {post.comments_count}
                       </span>
                     </div>
 
-                    <button>
-                      <MoreHorizontal size={22} />
-                    </button>
+                    <form
+                      className="comment-form"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        submitComment(post);
+                      }}
+                    >
+                      <input
+                        value={commentDrafts[post.id] || ""}
+                        onChange={(e) =>
+                          setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))
+                        }
+                        placeholder="Écrire un commentaire..."
+                      />
+                      <button type="submit">
+                        <Send size={16} />
+                      </button>
+                    </form>
                   </div>
                 </article>
               ))}
@@ -364,29 +227,33 @@ export default function CommunityPage() {
             </div>
 
             <div className="leaderboard-list">
-              {communityData.leaderboard.map((item, index) => (
-                <div className="leaderboard-item" key={item.id}>
-                  <span className="leaderboard-rank">{index + 1}</span>
+              {leaderboard.length === 0 && (
+                <p className="community-empty">Personne n'a encore roulé cette semaine.</p>
+              )}
 
-                  <img src={item.avatarUrl} alt={item.name} />
+              {leaderboard.map((item) => (
+                <div className="leaderboard-item" key={item.user_id}>
+                  <span className="leaderboard-rank">{item.rank}</span>
+
+                  <img
+                    src={
+                      item.avatar_url ||
+                      "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300"
+                    }
+                    alt={item.display_name}
+                  />
 
                   <div>
-                    <strong>{item.name}</strong>
-                    <span>{item.distance}</span>
+                    <strong>{item.display_name}</strong>
+                    <span>{item.distance_km} km</span>
                   </div>
 
-                  {index === 0 && <Crown className="crown-icon" size={28} />}
+                  {item.rank === 1 && <Crown className="crown-icon" size={28} />}
                 </div>
               ))}
             </div>
-
-            <button className="ranking-button">
-              Voir le classement complet
-              <span>›</span>
-            </button>
           </aside>
         </section>
-      </section>
-    </main>
+    </section>
   );
 }

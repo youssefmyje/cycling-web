@@ -1,140 +1,44 @@
-:root {
-  --yellow: #ffe600;
-  --yellow-dark: #d3c400;
-  --black: #050505;
-  --panel: #111111;
-  --panel-light: #191919;
-  --border: #2d2d2d;
-  --text: #ffffff;
-  --muted: #b0b0b0;
-}
-
-.home-page {
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top center, rgba(255, 230, 0, 0.07), transparent 25%),
-    radial-gradient(circle at center, #171717 0%, #000 58%);
-  color: var(--text);
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-/* SIDEBAR */
-
-.home-sidebar {
-  height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 22%),
-    linear-gradient(180deg, #0f0f0f, #050505);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 26px 0 18px;
-}
-
-.home-logo {
-  padding-left: 46px;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 26px;
-}
-
-.home-logo-m {
-  color: var(--yellow);
-  font-size: 58px;
-  font-weight: 1000;
-  line-height: 0.74;
-  font-style: italic;
-  letter-spacing: -7px;
-}
-
-.home-logo-text {
-  color: #ffffff;
-  font-size: 17px;
-  font-weight: 950;
-  line-height: 1;
-  font-style: italic;
-}
-
-.home-logo-subtitle {
-  color: var(--yellow);
-  font-size: 17px;
-  font-weight: 950;
-  line-height: 1;
-  margin-left: 58px;
-  font-style: italic;
-}
-
-.home-menu {
-  display: flex;
-  flex-direction: column;
-}
-
-.home-menu button,
-.home-logout {
-  width: 100%;
-  height: 53px;
-  border: none;
-  background: transparent;
-  color: #cfcfcf;
-  font-size: 16px;
-  font-weight: 750;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 0 34px;
-  cursor: pointer;
-  border-left: 4px solid transparent;
-  font-family: inherit;
-}
-
-.home-menu button svg,
-.home-logout svg {
-  color: #dcdcdc;
-}
-
-.home-menu button:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.055);
-}
-
-.home-menu button:hover svg {
-  color: #ffffff;
-}
-
-.home-menu .active {
-  color: var(--yellow);
-  background: rgba(255, 255, 255, 0.04);
-  border-left-color: var(--yellow);
-}
-
-.home-menu .active svg {
-  color: var(--yellow);
-  fill: var(--yellow);
-}
-
-.bibendum-box {
-  display: none;
-}
-
-.home-logout {
-  margin-top: auto;
-  color: #dcdcdc;
-  height: 52px;
-}
-
 /* CONTENT */
 
 .home-content {
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   padding: 18px 28px 14px;
   display: grid;
-  grid-template-rows: 42px 88px 220px minmax(0, 1fr);
+  grid-template-columns: 1.35fr 1fr;
+  grid-template-rows: 42px 88px 260px minmax(0, 1fr);
+  grid-template-areas:
+    "header header"
+    "stats stats"
+    "reco challenge"
+    "rides rides";
   row-gap: 12px;
+  column-gap: 16px;
+}
+
+.home-header {
+  grid-area: header;
+  min-width: 0;
+}
+
+.stats-cards {
+  grid-area: stats;
+  min-width: 0;
+}
+
+.recommendation-card {
+  grid-area: reco;
+  min-width: 0;
+}
+
+.challenge-card {
+  grid-area: challenge;
+  min-width: 0;
+}
+
+.recent-rides-card {
+  grid-area: rides;
+  min-width: 0;
 }
 
 .home-header {
@@ -157,6 +61,43 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 170px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+  z-index: 200;
+}
+
+.user-dropdown button {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #ff6b6b;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.user-dropdown button:hover {
+  background: rgba(255, 107, 107, 0.1);
 }
 
 .header-user img {
@@ -228,14 +169,6 @@
 
 /* CARTES MILIEU */
 
-.main-grid {
-  height: 220px;
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 16px;
-  margin-bottom: 0;
-}
-
 .recommendation-card,
 .challenge-card,
 .recent-rides-card {
@@ -251,7 +184,7 @@
 
 .recommendation-card,
 .challenge-card {
-  height: 220px;
+  height: 260px;
   min-height: 220px;
   padding: 16px 20px;
   overflow: hidden;
@@ -275,17 +208,19 @@
 
 .recommendation-content {
   display: grid;
-  grid-template-columns: 0.95fr 1fr;
+  grid-template-columns: 96px 1fr;
   align-items: center;
   gap: 16px;
-  height: calc(100% - 34px);
+  height: calc(100% - 48px);
+  margin-top: 6px;
 }
 
 .tire-visual-large {
-  height: 145px;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .tire-visual-large img {
@@ -311,6 +246,10 @@
   line-height: 0.9;
   font-weight: 1000;
   letter-spacing: 1px;
+}
+
+.recommendation-info {
+  width: 100%;
 }
 
 .recommendation-info p {
@@ -451,7 +390,7 @@
 .rides-head,
 .rides-row {
   display: grid;
-  grid-template-columns: 1.1fr 0.75fr 0.75fr 1.1fr 1.45fr 0.8fr;
+  grid-template-columns: 1.1fr 0.8fr 0.8fr 1fr 1.3fr;
   align-items: center;
   gap: 14px;
 }
@@ -470,6 +409,14 @@
   color: #d7d7d7;
   font-size: 13px;
   font-weight: 650;
+}
+
+.rides-row-clickable {
+  cursor: pointer;
+}
+
+.rides-row-clickable:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .rides-row:last-child {
@@ -524,17 +471,6 @@
   color: var(--yellow);
 }
 
-.rating-cell {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.rating-cell svg {
-  width: 14px;
-  height: 14px;
-}
-
 /* LOADING */
 
 .loading-text {
@@ -546,20 +482,6 @@
 /* RESPONSIVE WEB PETIT ÉCRAN */
 
 @media (max-width: 1300px) {
-  .home-page {
-    grid-template-columns: 220px 1fr;
-  }
-
-  .home-logo {
-    padding-left: 36px;
-  }
-
-  .home-menu button,
-  .home-logout {
-    font-size: 15px;
-    padding: 0 26px;
-  }
-
   .stats-cards {
     gap: 12px;
   }
@@ -579,28 +501,26 @@
 
 /* MOBILE */
 
-@media (max-width: 900px) {
-  .home-page {
-    display: block;
-    height: auto;
-    min-height: 100vh;
-    overflow: auto;
-  }
-
-  .home-sidebar {
-    display: none;
-  }
-
+@media (max-width: 768px) {
   .home-content {
     height: auto;
     overflow: visible;
     padding: 28px 18px;
-    display: block;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto;
+    grid-template-areas:
+      "header"
+      "reco"
+      "stats"
+      "challenge"
+      "rides";
+    row-gap: 18px;
   }
 
   .home-header {
     height: auto;
-    margin-bottom: 24px;
+    margin-bottom: 0;
   }
 
   .home-header h1 {
@@ -610,24 +530,27 @@
   .stats-cards {
     height: auto;
     grid-template-columns: 1fr;
-    margin-bottom: 18px;
+    margin-bottom: 0;
   }
 
   .stat-card {
     height: 110px;
   }
 
-  .main-grid {
-    height: auto;
-    grid-template-columns: 1fr;
-    margin-bottom: 18px;
+  .recommendation-info{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
+  .recommendation-info p strong {
+
+  }
   .recommendation-card,
   .challenge-card {
     height: auto;
-    min-height: 280px;
-    margin-bottom: 18px;
+    min-height: 300px;
   }
 
   .recommendation-content {

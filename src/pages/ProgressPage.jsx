@@ -1,223 +1,105 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../services/api";
 import {
-  Home,
-  Users,
-  Activity,
-  BarChart3,
-  User,
-  Settings,
-  LogOut,
+  CalendarDays,
   Bike,
   Mountain,
-  CalendarDays,
-  ChevronDown,
   Route,
   AlertTriangle,
   ArrowRight,
+  CircleDot,
+  Flame,
+  Repeat,
+  Zap,
+  Crown,
 } from "lucide-react";
+import { getUser, progressApi, activitiesApi } from "../services/api";
 import "../styles/ProgressPage.css";
 
-const API_URL = "http://localhost:5000/api/progress";
+const DAY_LABELS = { mon: "Lun", tue: "Mar", wed: "Mer", thu: "Jeu", fri: "Ven", sat: "Sam", sun: "Dim" };
 
-const defaultProgressData = {
-  user: {
-    firstName: "Youssef",
-    lastName: "M.",
-    level: 28,
-    avatarUrl:
-      "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300",
-  },
-  period: "30 derniers jours",
-  stats: {
-    kmThisWeek: 187,
-    rides: 4,
-    elevation: 1240,
-  },
-  dailyKm: [
-    { label: "21 avr.", value: 24 },
-    { label: "", value: 4 },
-    { label: "", value: 13 },
-    { label: "", value: 26 },
-    { label: "", value: 22 },
-    { label: "", value: 0 },
-    { label: "", value: 6 },
-    { label: "28 avr.", value: 30 },
-    { label: "", value: 36 },
-    { label: "", value: 7 },
-    { label: "", value: 12 },
-    { label: "", value: 0 },
-    { label: "", value: 24 },
-    { label: "", value: 7 },
-    { label: "5 mai", value: 2 },
-    { label: "", value: 54 },
-    { label: "", value: 19 },
-    { label: "", value: 29 },
-    { label: "", value: 5 },
-    { label: "", value: 38 },
-    { label: "", value: 15 },
-    { label: "", value: 11 },
-    { label: "12 mai", value: 20 },
-    { label: "", value: 29 },
-    { label: "", value: 45 },
-    { label: "", value: 30 },
-    { label: "", value: 2 },
-    { label: "", value: 5 },
-    { label: "", value: 19 },
-    { label: "", value: 28 },
-    { label: "19 mai", value: 25 },
-    { label: "", value: 5 },
-    { label: "", value: 30 },
-  ],
-  tire: {
-    name: "MICHELIN POWER CUP",
-    imageUrl:
-      "https://images.unsplash.com/photo-1610647752706-3bb12232b3a8?q=80&w=900",
-    usedKm: 2340,
-    maxKm: 4000,
-    wearPercent: 58,
-    alertText: "Pensez au remplacement bientôt",
-  },
+const STATUS_TEXT = {
+  ok: "Pneu en bon état",
+  monitor: "Pensez à surveiller l'usure",
+  replace_soon: "Remplacement recommandé bientôt",
 };
+
+const BADGES = [
+  { id: "km100", label: "100 km", icon: Flame, check: (s) => s.total_km >= 100,
+    getProgress: (s) => ({ current: Math.min(s.total_km, 100), goal: 100, unit: "km" }) },
+  { id: "km500", label: "500 km", icon: Mountain, check: (s) => s.total_km >= 500,
+    getProgress: (s) => ({ current: Math.min(s.total_km, 500), goal: 500, unit: "km" }) },
+  { id: "km1000", label: "1000 km", icon: Crown, check: (s) => s.total_km >= 1000,
+    getProgress: (s) => ({ current: Math.min(s.total_km, 1000), goal: 1000, unit: "km" }) },
+  { id: "rides10", label: "10 sorties", icon: Repeat, check: (s) => s.total_rides >= 10,
+    getProgress: (s) => ({ current: Math.min(s.total_rides, 10), goal: 10, unit: "sorties" }) },
+  { id: "rides50", label: "50 sorties", icon: Zap, check: (s) => s.total_rides >= 50,
+    getProgress: (s) => ({ current: Math.min(s.total_rides, 50), goal: 50, unit: "sorties" }) },
+];
+
+function getWeekStart() {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? 6 : day - 1;
+  const monday = new Date(now);
+  monday.setHours(0, 0, 0, 0);
+  monday.setDate(now.getDate() - diff);
+  return monday;
+}
 
 export default function ProgressPage() {
   const navigate = useNavigate();
+  const user = getUser();
 
-  const [progressData, setProgressData] = useState(defaultProgressData);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(user?.id));
+  const [summary, setSummary] = useState(null);
+  const [weeklyDays, setWeeklyDays] = useState([]);
+  const [tyreWear, setTyreWear] = useState([]);
+  const [activities, setActivities] = useState([]);
 
   useEffect(() => {
-    getProgressData();
-  }, []);
+    if (!user?.id) return;
 
-  const getProgressData = async () => {
-    try {
-      const response = await fetch(API_URL);
-
-      if (!response.ok) {
-        throw new Error("Backend non disponible");
+    Promise.allSettled([
+      progressApi.summary(),
+      progressApi.weekly(),
+      progressApi.tyreWear(),
+      activitiesApi.list({ user_id: user.id, limit: 50 }),
+    ]).then(([summaryRes, weeklyRes, tyreRes, activitiesRes]) => {
+      if (summaryRes.status === "fulfilled") setSummary(summaryRes.value.data);
+      if (weeklyRes.status === "fulfilled") setWeeklyDays(weeklyRes.value.data.days || []);
+      if (tyreRes.status === "fulfilled") setTyreWear(tyreRes.value.data.items || []);
+      if (activitiesRes.status === "fulfilled") {
+        setActivities(activitiesRes.value.data.items || []);
       }
-
-      const data = await response.json();
-
-      setProgressData({
-        user: {
-          firstName: data.user?.firstName || defaultProgressData.user.firstName,
-          lastName: data.user?.lastName || defaultProgressData.user.lastName,
-          level: data.user?.level ?? defaultProgressData.user.level,
-          avatarUrl: data.user?.avatarUrl || defaultProgressData.user.avatarUrl,
-        },
-        period: data.period || defaultProgressData.period,
-        stats: {
-          kmThisWeek:
-            data.stats?.kmThisWeek ?? defaultProgressData.stats.kmThisWeek,
-          rides: data.stats?.rides ?? defaultProgressData.stats.rides,
-          elevation:
-            data.stats?.elevation ?? defaultProgressData.stats.elevation,
-        },
-        dailyKm: data.dailyKm?.length
-          ? data.dailyKm
-          : defaultProgressData.dailyKm,
-        tire: {
-          name: data.tire?.name || defaultProgressData.tire.name,
-          imageUrl: data.tire?.imageUrl || defaultProgressData.tire.imageUrl,
-          usedKm: data.tire?.usedKm ?? defaultProgressData.tire.usedKm,
-          maxKm: data.tire?.maxKm ?? defaultProgressData.tire.maxKm,
-          wearPercent:
-            data.tire?.wearPercent ?? defaultProgressData.tire.wearPercent,
-          alertText: data.tire?.alertText || defaultProgressData.tire.alertText,
-        },
-      });
-    } catch (error) {
-      console.warn("Données temporaires utilisées :", error.message);
-    } finally {
       setLoading(false);
-    }
-  };
-
-  const totalKm = progressData.dailyKm.reduce(
-    (sum, item) => sum + Number(item.value || 0),
-    0
-  );
+    });
+  }, [user?.id]);
 
   if (loading) {
-    return (
-      <main className="progress-page">
-        <p className="progress-loading">Chargement...</p>
-      </main>
-    );
+    return <p className="progress-loading">Chargement...</p>;
   }
 
+  const weekStart = getWeekStart();
+  const weeklyRides = activities.filter(
+    (activity) => activity.status === "completed" && new Date(activity.completed_at) >= weekStart
+  );
+  const weeklyElevation = weeklyRides.reduce((sum, ride) => sum + (ride.elevation_m || 0), 0);
+
+  const maxDayValue = Math.max(...weeklyDays.map((d) => d.distance_km || 0), 10);
+  const axisMax = Math.ceil(maxDayValue / 10) * 10 || 10;
+  const yAxisTicks = [6, 5, 4, 3, 2, 1, 0].map((i) => Math.round((axisMax / 6) * i));
+  const totalWeekKm = weeklyDays.reduce((sum, d) => sum + (d.distance_km || 0), 0);
+
   return (
-    <main className="progress-page">
-      <aside className="progress-sidebar">
-        <div className="progress-logo">
-          <span className="progress-logo-m">M</span>
-          <span className="progress-logo-text">MICHELIN</span>
-          <span className="progress-logo-subtitle">RIDING</span>
-        </div>
-
-        <nav className="progress-menu">
-          <button onClick={() => navigate("/")}>
-            <Home size={24} />
-            Accueil
-          </button>
-
-          <button onClick={() => navigate("/communaute")}>
-            <Users size={24} />
-            Communauté
-          </button>
-
-          <button className="active">
-            <BarChart3 size={24} />
-            Activité
-          </button>
-
-          <button onClick={() => navigate("/profil")}>
-            <User size={24} />
-            Mon Profil
-          </button>
-
-          <button>
-            <Settings size={24} />
-            Paramètres
-          </button>
-        </nav>
-
-        <div className="progress-user-box">
-          <img src={progressData.user.avatarUrl} alt="Utilisateur" />
-
-          <div>
-            <strong>
-              {progressData.user.firstName} {progressData.user.lastName}
-            </strong>
-            <span>Niveau {progressData.user.level}</span>
-          </div>
-        </div>
-
-        <button
-            className="home-logout"
-            onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                navigate("/login");
-            }}
-            >
-            <LogOut size={22} />
-            Déconnexion
-            </button>
-      </aside>
-
-      <section className="progress-content">
+    <section className="progress-content">
         <header className="progress-header">
-          <h1>Activité</h1>
+          <h1>Mes Progrès</h1>
 
-          <button className="period-button">
+          <div className="period-button">
             <CalendarDays size={20} />
-            {progressData.period}
-            <ChevronDown size={20} />
-          </button>
+            7 derniers jours
+          </div>
         </header>
 
         <section className="progress-stats">
@@ -227,7 +109,7 @@ export default function ProgressPage() {
             </div>
 
             <div>
-              <strong>{progressData.stats.kmThisWeek}</strong>
+              <strong>{summary?.weekly_km ?? 0}</strong>
               <span>km cette semaine</span>
             </div>
 
@@ -240,7 +122,7 @@ export default function ProgressPage() {
             </div>
 
             <div>
-              <strong>{progressData.stats.rides}</strong>
+              <strong>{weeklyRides.length}</strong>
               <span>rides</span>
             </div>
 
@@ -253,9 +135,7 @@ export default function ProgressPage() {
             </div>
 
             <div>
-              <strong>
-                {progressData.stats.elevation.toLocaleString("fr-FR")}
-              </strong>
+              <strong>{weeklyElevation.toLocaleString("fr-FR")}</strong>
               <span>m dénivelé</span>
             </div>
 
@@ -268,102 +148,124 @@ export default function ProgressPage() {
             <div className="chart-header">
               <h2>Kilomètres par jour</h2>
               <span>
-                Total : <strong>{totalKm} km</strong>
+                Total : <strong>{Math.round(totalWeekKm)} km</strong>
               </span>
             </div>
 
             <div className="chart-area">
               <div className="y-axis">
-                <span>60</span>
-                <span>50</span>
-                <span>40</span>
-                <span>30</span>
-                <span>20</span>
-                <span>10</span>
-                <span>0</span>
+                {yAxisTicks.map((tick) => (
+                  <span key={tick}>{tick}</span>
+                ))}
               </div>
 
               <div className="bars-area">
-                {progressData.dailyKm.map((day, index) => {
-                  const barHeight = Math.min(
-                    (Number(day.value || 0) / 60) * 100,
-                    100
-                  );
+                {weeklyDays.map((day) => {
+                  const barHeight = Math.min(((day.distance_km || 0) / axisMax) * 100, 100);
 
                   return (
-                    <div className="bar-column" key={index}>
+                    <div className="bar-column" key={day.day}>
                       <div className="bar-wrapper">
                         <div
                           className="bar"
                           style={{ height: `${barHeight}%` }}
-                          title={`${day.value} km`}
+                          title={`${day.distance_km} km`}
                         />
                       </div>
 
-                      <span>{day.label}</span>
+                      <span>{DAY_LABELS[day.day] || day.day}</span>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <p className="chart-period">{progressData.period}</p>
+            <p className="chart-period">7 derniers jours</p>
           </article>
 
           <article className="tire-progress-card">
             <div className="tire-progress-header">
               <h2>Mes Pneus</h2>
-              <Settings size={24} />
             </div>
 
-            <div className="tire-progress-content">
-              <div className="tire-progress-image">
-                <img
-                  src={progressData.tire.imageUrl}
-                  alt={progressData.tire.name}
-                />
-              </div>
-
-              <div className="tire-progress-info">
-                <h3>{progressData.tire.name}</h3>
-
-                <div className="wear-circle">
-                  <div
-                    className="wear-circle-inner"
-                    style={{
-                      background: `conic-gradient(#FFE600 ${
-                        progressData.tire.wearPercent * 3.6
-                      }deg, #444 ${
-                        progressData.tire.wearPercent * 3.6
-                      }deg)`,
-                    }}
-                  >
-                    <div>
-                      <strong>{progressData.tire.usedKm}</strong>
-                      <span>/ {progressData.tire.maxKm} km</span>
+            {tyreWear.length === 0 ? (
+              <p className="remaining-text">
+                Ajoute un pneu Michelin dans ton profil pour suivre son usure.
+              </p>
+            ) : (
+              <div className="tyre-list">
+                {tyreWear.map((tyre, i) => {
+                  const pct = tyre.wear_percent;
+                  const barColor = pct >= 80 ? "#ff6b6b" : pct >= 50 ? "#ffa500" : "#ffe600";
+                  return (
+                    <div key={i} className="tyre-row">
+                      <div className="tyre-row-icon">
+                        <CircleDot size={28} color="#ffe600" />
+                      </div>
+                      <div className="tyre-row-info">
+                        <div className="tyre-row-header">
+                          <strong>{tyre.tyre_name}</strong>
+                          <span className={`tyre-status-badge tyre-status-${tyre.replacement_status}`}>
+                            {tyre.replacement_status !== "ok" && <AlertTriangle size={11} />}
+                            {STATUS_TEXT[tyre.replacement_status]}
+                          </span>
+                        </div>
+                        <div className="tyre-wear-bar-track">
+                          <div
+                            className="tyre-wear-bar-fill"
+                            style={{ width: `${pct}%`, background: barColor }}
+                          />
+                        </div>
+                        <div className="tyre-row-km">
+                          <span>{tyre.distance_done_km} km parcourus</span>
+                          <span>{pct}% — vie : {tyre.estimated_lifespan_km} km</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="wear-text">
-                  <strong>{progressData.tire.wearPercent}%</strong>
-                  <span>d’usure</span>
-                </div>
-
-                <p className="tire-alert">
-                  <AlertTriangle size={22} />
-                  {progressData.tire.alertText}
-                </p>
-
-                <button>
-                  Voir les alternatives Michelin
-                  <ArrowRight size={22} />
-                </button>
+                  );
+                })}
               </div>
-            </div>
+            )}
+
+            <button className="tyre-cta-btn" onClick={() => navigate("/recommandation")}>
+              Voir les alternatives Michelin
+              <ArrowRight size={18} />
+            </button>
           </article>
         </section>
-      </section>
-    </main>
+
+        <section className="badges-card">
+          <div className="section-title">
+            <h2>Badges &amp; Récompenses</h2>
+            <span />
+          </div>
+
+          <div className="badges-grid">
+            {BADGES.map((badge) => {
+              const earned = summary ? badge.check(summary) : false;
+              const progress = summary ? badge.getProgress(summary) : null;
+              const Icon = badge.icon;
+
+              return (
+                <div className={`badge-item ${earned ? "earned" : "locked"}`} key={badge.id}>
+                  <div className="badge-icon">
+                    <Icon size={26} />
+                  </div>
+                  <strong>{badge.label}</strong>
+                  {earned ? (
+                    <span className="badge-unlocked">Débloqué ✓</span>
+                  ) : progress ? (
+                    <span className="badge-progress">
+                      {progress.unit === "km"
+                        ? `${progress.current.toLocaleString("fr-FR")} / ${progress.goal} km`
+                        : `${progress.current} / ${progress.goal} ${progress.unit}`}
+                    </span>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+    </section>
   );
 }

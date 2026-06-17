@@ -1,150 +1,20 @@
-:root {
-  --yellow: #ffe600;
-  --yellow-dark: #d8c800;
-  --bg: #050505;
-  --panel: #101010;
-  --panel-light: #171717;
-  --border: #2a2a2a;
-  --text: #ffffff;
-  --muted: #a5a5a5;
-}
-
 /* PAGE */
 
-.dashboard-page {
+.profile-grid {
   width: 100%;
-  height: 100vh;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top center, rgba(255, 230, 0, 0.08), transparent 26%),
-    radial-gradient(circle at center, #171717 0%, #000000 58%);
+  height: 100%;
   display: grid;
-  grid-template-columns: 250px 330px 1fr;
+  grid-template-columns: 330px 1fr;
   gap: 14px;
   padding: 14px;
   color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-/* SIDEBAR */
-
-.sidebar {
-  height: calc(100vh - 28px);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 22%),
-    linear-gradient(180deg, #0f0f0f, #050505);
-  border-right: 1px solid var(--border);
-  padding: 26px 0 18px;
-  display: flex;
-  flex-direction: column;
-}
-
-.logo {
-  padding-left: 36px;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 28px;
-}
-
-.logo-m {
-  color: var(--yellow);
-  font-size: 58px;
-  font-weight: 1000;
-  line-height: 0.74;
-  font-style: italic;
-  letter-spacing: -7px;
-}
-
-.logo-text {
-  color: white;
-  font-size: 17px;
-  font-weight: 950;
-  font-style: italic;
-  line-height: 1;
-}
-
-.logo-subtitle {
-  color: var(--yellow);
-  font-size: 17px;
-  font-weight: 950;
-  font-style: italic;
-  line-height: 1;
-  margin-left: 58px;
-}
-
-.side-menu {
-  display: flex;
-  flex-direction: column;
-}
-
-.side-menu button,
-.logout {
-  width: 100%;
-  height: 53px;
-  border: none;
-  background: transparent;
-  color: #dcdcdc;
-  border-radius: 0;
-  padding: 0 34px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  font-size: 16px;
-  font-weight: 750;
-  cursor: pointer;
-  text-align: left;
-  border-left: 4px solid transparent;
-  font-family: inherit;
-}
-
-.side-menu button svg,
-.logout svg {
-  color: #dcdcdc;
-  stroke-width: 2.4;
-}
-
-.side-menu button:hover {
-  background: rgba(255, 255, 255, 0.055);
-  color: #ffffff;
-}
-
-.side-menu button:hover svg {
-  color: #ffffff;
-}
-
-.side-menu .active {
-  background: var(--yellow);
-  color: #111111;
-  border-left-color: var(--yellow);
-  border-radius: 12px;
-  margin: 6px 18px;
-  width: calc(100% - 36px);
-  box-shadow: 0 10px 24px rgba(255, 230, 0, 0.18);
-}
-
-.side-menu .active svg {
-  color: #111111;
-}
-
-.side-menu .active:hover {
-  background: var(--yellow);
-  color: #111111;
-}
-
-.side-menu .active:hover svg {
-  color: #111111;
-}
-
-.logout {
-  margin-top: auto;
-  height: 52px;
 }
 
 /* PANELS */
 
 .profile-panel,
 .equipment-panel {
-  height: calc(100vh - 28px);
+  height: 100%;
   overflow: hidden;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 42%),
@@ -204,10 +74,19 @@
   gap: 8px;
 }
 
+.profile-bio-display {
+  margin: 14px 0 0;
+  color: #b8b8b8;
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: center;
+  font-style: italic;
+}
+
 .profile-divider {
   height: 1px;
   background: var(--border);
-  margin: 40px 0 24px;
+  margin: 28px 0 24px;
 }
 
 .stats-row {
@@ -303,9 +182,104 @@
 
 .equipment-panel {
   padding: 26px 28px 18px;
+  overflow-y: auto;
   display: grid;
-  grid-template-rows: 42px 250px 1px 32px minmax(0, 1fr) 58px;
+  grid-template-rows: 42px minmax(180px, auto) 1px 32px minmax(0, 1fr) auto;
   row-gap: 12px;
+}
+
+.bike-switcher {
+  display: flex;
+  gap: 8px;
+}
+
+.bike-switcher button {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: #cfcfcf;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.bike-switcher button.active {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.bike-placeholder-icon {
+  color: #2f2f2f;
+  margin: 12px auto 4px;
+  display: block;
+}
+
+.add-equipment-btn {
+  width: 100%;
+  height: 100%;
+  min-height: 90px;
+  background: transparent;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.add-equipment-btn:hover {
+  border-color: var(--yellow-dark);
+  color: var(--yellow);
+}
+
+.tire-edit-form {
+  display: grid;
+  gap: 8px;
+}
+
+.bio-edit {
+  width: 100%;
+  background: #080808;
+  color: white;
+  border: 1px solid #383838;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.bio-edit:focus,
+select:focus {
+  outline: none;
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255, 230, 0, 0.14);
+}
+
+select {
+  width: 100%;
+  height: 40px;
+  background: #080808;
+  color: white;
+  border: 1px solid #383838;
+  border-radius: 9px;
+  padding: 0 12px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.remaining-text {
+  margin: 0;
+  color: #b8b8b8;
+  font-size: 12.5px;
 }
 
 .panel-header {
@@ -500,16 +474,9 @@
 
 /* INPUTS */
 
-.name-edit,
-.bike-edit,
-.tire-edit {
+.bike-edit {
   display: grid;
   gap: 9px;
-}
-
-.name-edit {
-  grid-template-columns: 1fr 1fr;
-  margin-bottom: 18px;
 }
 
 input {
@@ -537,22 +504,12 @@ input:focus {
 /* PETIT WEB */
 
 @media (max-width: 1300px) {
-  .dashboard-page {
-    grid-template-columns: 220px 300px 1fr;
-  }
-
-  .logo {
-    padding-left: 32px;
-  }
-
-  .side-menu button,
-  .logout {
-    font-size: 15px;
-    padding: 0 26px;
+  .profile-grid {
+    grid-template-columns: 300px 1fr;
   }
 
   .equipment-panel {
-    grid-template-rows: 42px 230px 1px 32px minmax(0, 1fr) 58px;
+    grid-template-rows: 42px minmax(160px, auto) 1px 32px minmax(0, 1fr) auto;
   }
 
   .bike-image {
@@ -570,17 +527,12 @@ input:focus {
 
 /* MOBILE */
 
-@media (max-width: 900px) {
-  .dashboard-page {
-    display: block;
+@media (max-width: 768px) {
+  .profile-grid {
+    display: flex;
+    flex-direction: column;
     height: auto;
-    min-height: 100vh;
-    overflow: auto;
     padding: 0;
-  }
-
-  .sidebar {
-    display: none;
   }
 
   .profile-panel,

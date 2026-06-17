@@ -22,13 +22,27 @@ export function logout() {
   localStorage.removeItem("user");
 }
 
+function buildQuery(params = {}) {
+  const search = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      search.set(key, value);
+    }
+  });
+
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
 async function apiFetch(path, options = {}) {
   const token = getToken();
+  const isFormData = options.body instanceof FormData;
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
@@ -37,9 +51,11 @@ async function apiFetch(path, options = {}) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-  console.error("Erreur API complète :", data);
+  if (!options.silent) {
+    console.error("Erreur API complète :", data);
+  }
 
-  let message = "Erreur API";
+  let message;
 
   if (Array.isArray(data?.detail)) {
     message = data.detail
@@ -89,5 +105,146 @@ export const authApi = {
 
   me() {
     return apiFetch("/auth/me");
+  },
+};
+
+export const profileApi = {
+  get(userId) {
+    return apiFetch(`/profiles/${userId}`);
+  },
+
+  update(userId, body) {
+    return apiFetch(`/profiles/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  },
+
+  getBikes(userId) {
+    return apiFetch(`/profiles/${userId}/bikes`);
+  },
+
+  addBike(userId, body) {
+    return apiFetch(`/profiles/${userId}/bike`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  addMountedTyre(userId, body) {
+    return apiFetch(`/profiles/${userId}/mounted-tyres`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+};
+
+export const activitiesApi = {
+  create(body) {
+    return apiFetch("/activities", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  list({ user_id, limit } = {}) {
+    return apiFetch(`/activities${buildQuery({ user_id, limit })}`);
+  },
+
+  get(activityId) {
+    return apiFetch(`/activities/${activityId}`);
+  },
+
+  update(activityId, body) {
+    return apiFetch(`/activities/${activityId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  },
+
+  complete(activityId, body) {
+    return apiFetch(`/activities/${activityId}/complete`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  getRoute(activityId) {
+    return apiFetch(`/activities/${activityId}/route`, { silent: true });
+  },
+
+  importGpx(file, { bikeId, type, weather } = {}) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return apiFetch(
+      `/activities/import/gpx${buildQuery({ bike_id: bikeId, type, weather })}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+  },
+};
+
+export const progressApi = {
+  summary() {
+    return apiFetch("/progress/summary");
+  },
+
+  weekly() {
+    return apiFetch("/progress/weekly");
+  },
+
+  tyreWear() {
+    return apiFetch("/progress/tyre-wear");
+  },
+};
+
+export const communityApi = {
+  getFeed(limit = 20) {
+    return apiFetch(`/feed${buildQuery({ limit })}`);
+  },
+
+  like(activityId) {
+    return apiFetch(`/activities/${activityId}/like`, { method: "POST" });
+  },
+
+  comment(activityId, content) {
+    return apiFetch(`/activities/${activityId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  getComments(activityId) {
+    return apiFetch(`/activities/${activityId}/comments`);
+  },
+
+  leaderboard(limit = 10) {
+    return apiFetch(`/leaderboard${buildQuery({ limit })}`);
+  },
+};
+
+export const recommendationsApi = {
+  create(body) {
+    return apiFetch("/recommendations/tyres", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  get(recommendationId) {
+    return apiFetch(`/recommendations/tyres/${recommendationId}`);
+  },
+};
+
+export const challengesApi = {
+  list() {
+    return apiFetch("/challenges");
+  },
+
+  join(challengeId) {
+    return apiFetch(`/challenges/${challengeId}/join`, { method: "POST" });
   },
 };
