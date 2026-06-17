@@ -311,28 +311,52 @@ select {
 
 /* BIKE */
 
+/* BIKE BLOCK */
 .bike-block {
-  text-align: center;
-  min-height: 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  gap: 10px;
+  text-align: center;
 }
 
 .bike-image {
   width: 100%;
-  max-width: 410px;
-  height: 205px;
+  max-width: 340px;
+  height: 160px;
   object-fit: contain;
-  filter: drop-shadow(0 22px 45px rgba(0, 0, 0, 0.9));
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.8));
 }
 
 .bike-block h3 {
-  margin: 4px 0 0;
-  font-size: 18px;
+  margin: 0;
+  font-size: 16px;
   font-weight: 950;
-  color: #cfcfcf;
+  color: white;
+}
+
+.bike-block-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.bike-meta-tag {
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 230, 0, 0.08);
+  border: 1px solid rgba(255, 230, 0, 0.2);
+  color: var(--yellow);
+  font-size: 11px;
+  font-weight: 850;
+  display: inline-flex;
+  align-items: center;
 }
 
 .equipment-divider {
@@ -349,97 +373,112 @@ select {
   gap: 10px;
 }
 
-/* TIRES */
-
+/* TYRES GRID */
 .tires-grid {
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .tire-card {
   min-height: 0;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 40%),
-    #131313;
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), transparent 40%),
+    #111;
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 12px;
-  padding: 14px;
+  border-radius: 14px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  transition: background 0.15s, border-color 0.15s;
+  transition: border-color 0.15s;
 }
 
-.tire-card-clickable {
-  cursor: pointer;
-}
+.tire-card-clickable { cursor: pointer; }
 
 .tire-card-clickable:hover {
-  background:
-    linear-gradient(145deg, rgba(252, 229, 0, 0.06), transparent 40%),
-    #131313;
-  border-color: rgba(252, 229, 0, 0.25);
+  border-color: rgba(252, 229, 0, 0.3);
 }
 
-
 .tire-image-wrapper {
-  height: 105px;
-  border-radius: 10px;
-  overflow: hidden;
+  height: 110px;
   background: #080808;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .tire-image {
   width: 100%;
   height: 100%;
-  max-height: 150px;
   object-fit: contain;
-  padding: 8px;
-  display: block;
+  padding: 10px;
+}
+
+.tire-card-body {
+  padding: 12px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .tire-brand {
   margin: 0;
-  color: white;
-  font-size: 14px;
+  color: var(--yellow);
+  font-size: 10px;
   font-style: italic;
-  font-weight: 850;
-  letter-spacing: 1px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
 .tire-card h4 {
   margin: 0;
   color: white;
-  font-size: 19px;
-  line-height: 1;
+  font-size: 15px;
   font-weight: 950;
+  line-height: 1.1;
 }
 
 .tire-size {
   margin: 0;
-  color: var(--muted);
-  font-size: 14px;
+  color: #888;
+  font-size: 12px;
 }
 
 .tire-separator {
   height: 1px;
-  background: var(--border);
-  margin: 5px 0;
+  background: rgba(255,255,255,0.06);
+  margin: 6px 0 4px;
 }
 
 .usage-label {
   margin: 0;
-  color: var(--muted);
-  font-size: 13px;
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .usage-value {
   display: block;
-  font-size: 17px;
+  font-size: 15px;
+  font-weight: 850;
   color: white;
+}
+
+.tire-card-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  color: var(--yellow);
+  font-size: 11px;
+  font-weight: 800;
+  margin-top: auto;
+  padding-top: 6px;
 }
 
 .stars {

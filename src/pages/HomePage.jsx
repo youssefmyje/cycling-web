@@ -363,9 +363,14 @@ export default function HomePage() {
           </article>
 
         <section className="recent-rides-card">
-          <div className="section-title">
-            <h2>Mes Rides récents</h2>
-            <span />
+          <div className="section-title section-title-with-action">
+            <div>
+              <h2>Rides récents</h2>
+              <span />
+            </div>
+            <button className="see-all-btn" onClick={() => navigate("/mes-rides")}>
+              Voir tout →
+            </button>
           </div>
 
           <div className="rides-table">

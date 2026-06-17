@@ -10,6 +10,7 @@ import RecommendationPage from "./pages/RecommendationPage";
 import NewActivityPage from "./pages/NewActivityPage";
 import ActivityDetailPage from "./pages/ActivityDetailPage";
 import TyreProductPage from "./pages/TyreProductPage";
+import MyRidesPage from "./pages/MyRidesPage";
 import { getToken } from "./services/api";
 
 function ProtectedRoute() {
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/activites/nouvelle" element={<NewActivityPage />} />
             <Route path="/activites/:activityId" element={<ActivityDetailPage />} />
             <Route path="/catalogue/:tyreId" element={<TyreProductPage />} />
+            <Route path="/mes-rides" element={<MyRidesPage />} />
           </Route>
         </Route>
       </Routes>

@@ -1,0 +1,140 @@
+.my-rides-content {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 22px 28px 14px;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.my-rides-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.my-rides-back {
+  border: none;
+  background: transparent;
+  color: #b8b8b8;
+  font-size: 13.5px;
+  font-weight: 750;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.my-rides-back:hover { color: white; }
+
+.my-rides-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 950;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.my-rides-header h1 span {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--yellow);
+  background: rgba(252, 229, 0, 0.1);
+  border: 1px solid rgba(252, 229, 0, 0.2);
+  border-radius: 999px;
+  padding: 2px 12px;
+}
+
+.my-rides-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.my-rides-filters button {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: #888;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.my-rides-filters button:hover { color: white; border-color: #555; }
+
+.my-rides-filters button.active {
+  background: rgba(252, 229, 0, 0.1);
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.my-rides-table-wrapper {
+  overflow-y: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.03), transparent 42%),
+    #0e0e0e;
+  padding: 0 18px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: #2e2e2e transparent;
+}
+
+.my-rides-head,
+.my-rides-row {
+  display: grid;
+  grid-template-columns: 32px 1.4fr 0.8fr 0.8fr 1fr 0.8fr 1.3fr 0.7fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.my-rides-head {
+  position: sticky;
+  top: 0;
+  background: #0e0e0e;
+  z-index: 1;
+  height: 42px;
+  color: #888;
+  font-size: 12.5px;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.my-rides-row {
+  min-height: 52px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #d7d7d7;
+  font-size: 13.5px;
+  font-weight: 650;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0 4px;
+  transition: background 0.1s;
+}
+
+.my-rides-row:last-child { border-bottom: none; }
+.my-rides-row:hover { background: rgba(255, 255, 255, 0.04); }
+
+.my-rides-empty {
+  margin: 24px 0;
+  color: #888;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .my-rides-content { padding: 16px 14px 100px; height: auto; }
+  .my-rides-table-wrapper { overflow-x: auto; }
+  .my-rides-head, .my-rides-row { min-width: 800px; }
+}

@@ -13,6 +13,7 @@ import {
   Zap,
   Sun,
   Plus,
+  ArrowRight,
 } from "lucide-react";
 import { getUser, profileApi, progressApi } from "../services/api";
 import "../styles/ProfilePage.css";
@@ -304,10 +305,18 @@ export default function ProfilePage() {
         <div className="bike-block">
           {selectedBike && (
             <>
-              <Bike size={96} className="bike-placeholder-icon" />
+              <img src="/velo/velo.png" alt={`${selectedBike.brand} ${selectedBike.model}`} className="bike-image" />
               <h3>
-                {selectedBike.brand} {selectedBike.model} — {RIDER_TYPE_LABELS[selectedBike.category] || selectedBike.category}
+                {selectedBike.brand} {selectedBike.model}
               </h3>
+              <div className="bike-block-meta">
+                {selectedBike.category && (
+                  <span className="bike-meta-tag">{RIDER_TYPE_LABELS[selectedBike.category] || selectedBike.category}</span>
+                )}
+                {selectedBike.wheel_size && (
+                  <span className="bike-meta-tag">{selectedBike.wheel_size}</span>
+                )}
+              </div>
             </>
           )}
 
@@ -376,26 +385,28 @@ export default function ProfilePage() {
                     key={tyre.id}
                     onClick={() => tyre.catalogue_id && navigate(`/catalogue/${tyre.catalogue_id}`)}
                   >
-                    {(tyre.pic1 || tyre.pic2) && (
-                      <div className="tire-image-wrapper">
-                        <img
-                          src={tyre.pic || tyre.pic1}
-                          alt={tyre.model}
-                          className="tire-image"
-                        />
-                      </div>
-                    )}
-
-                    <p className="tire-brand">{tyre.brand}</p>
-                    <h4>{tyre.model}</h4>
-                    <p className="tire-size">{tyre.size}</p>
-
-                    <div className="tire-separator" />
-
-                    <p className="usage-label">Durée de vie estimée</p>
-                    <strong className="usage-value">
-                      {Number(tyre.estimated_lifespan_km).toLocaleString("fr-FR")} km
-                    </strong>
+                    <div className="tire-image-wrapper">
+                      {tyre.pic1 || tyre.pic2 ? (
+                        <img src={tyre.pic1 || tyre.pic2} alt={tyre.model} className="tire-image" />
+                      ) : (
+                        <CircleDot size={40} color="rgba(255,230,0,0.4)" />
+                      )}
+                    </div>
+                    <div className="tire-card-body">
+                      <p className="tire-brand">{tyre.brand}</p>
+                      <h4>{tyre.model}</h4>
+                      {tyre.size && <p className="tire-size">{tyre.size}</p>}
+                      <div className="tire-separator" />
+                      <p className="usage-label">Durée de vie</p>
+                      <strong className="usage-value">
+                        {Number(tyre.estimated_lifespan_km).toLocaleString("fr-FR")} km
+                      </strong>
+                      {tyre.catalogue_id && (
+                        <div className="tire-card-arrow">
+                          Voir la fiche <ArrowRight size={12} />
+                        </div>
+                      )}
+                    </div>
                   </article>
                 ))}
               </div>

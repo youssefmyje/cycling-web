@@ -13,6 +13,7 @@ import {
   Crown,
   ChevronDown,
   TrendingUp, Navigation, Layers, TreePine, Building2,
+  Copy, Check,
 } from "lucide-react";
 import { getUser, progressApi, activitiesApi, profileApi } from "../services/api";
 import "../styles/ProgressPage.css";
@@ -33,16 +34,36 @@ const STATUS_TEXT = {
 };
 
 const BADGES = [
-  { id: "km100", label: "100 km", icon: Flame, check: (s) => s.total_km >= 100,
-    getProgress: (s) => ({ current: Math.min(s.total_km, 100), goal: 100, unit: "km" }) },
-  { id: "km500", label: "500 km", icon: Mountain, check: (s) => s.total_km >= 500,
-    getProgress: (s) => ({ current: Math.min(s.total_km, 500), goal: 500, unit: "km" }) },
-  { id: "km1000", label: "1000 km", icon: Crown, check: (s) => s.total_km >= 1000,
-    getProgress: (s) => ({ current: Math.min(s.total_km, 1000), goal: 1000, unit: "km" }) },
-  { id: "rides10", label: "10 sorties", icon: Repeat, check: (s) => s.total_rides >= 10,
-    getProgress: (s) => ({ current: Math.min(s.total_rides, 10), goal: 10, unit: "sorties" }) },
-  { id: "rides50", label: "50 sorties", icon: Zap, check: (s) => s.total_rides >= 50,
-    getProgress: (s) => ({ current: Math.min(s.total_rides, 50), goal: 50, unit: "sorties" }) },
+  {
+    id: "km100", label: "100 km", icon: Flame,
+    check: (s) => s.total_km >= 100,
+    getProgress: (s) => ({ current: Math.min(s.total_km, 100), goal: 100, unit: "km" }),
+    promo: { code: "MICH100KM", desc: "−10% sur ton prochain pneu Michelin", expires: "31/12/2026" },
+  },
+  {
+    id: "km500", label: "500 km", icon: Mountain,
+    check: (s) => s.total_km >= 500,
+    getProgress: (s) => ({ current: Math.min(s.total_km, 500), goal: 500, unit: "km" }),
+    promo: { code: "RIDER500", desc: "−15% sur les accessoires vélo", expires: "31/12/2026" },
+  },
+  {
+    id: "km1000", label: "1 000 km", icon: Crown,
+    check: (s) => s.total_km >= 1000,
+    getProgress: (s) => ({ current: Math.min(s.total_km, 1000), goal: 1000, unit: "km" }),
+    promo: { code: "LEGEND1K", desc: "Livraison offerte + −20% sur toute la gamme Racing", expires: "31/12/2026" },
+  },
+  {
+    id: "rides10", label: "10 sorties", icon: Repeat,
+    check: (s) => s.total_rides >= 10,
+    getProgress: (s) => ({ current: Math.min(s.total_rides, 10), goal: 10, unit: "sorties" }),
+    promo: { code: "RIDES10GO", desc: "−5% dès 50 € d'achat sur michelin.fr", expires: "31/12/2026" },
+  },
+  {
+    id: "rides50", label: "50 sorties", icon: Zap,
+    check: (s) => s.total_rides >= 50,
+    getProgress: (s) => ({ current: Math.min(s.total_rides, 50), goal: 50, unit: "sorties" }),
+    promo: { code: "FIFTY50RIDE", desc: "−25% sur les pneus Performance & Racing", expires: "31/12/2026" },
+  },
 ];
 
 function StarRating({ value }) {
@@ -118,6 +139,7 @@ export default function ProgressPage() {
   const [bikes, setBikes] = useState([]);
   const [period, setPeriod] = useState("7d");
   const [showPeriodMenu, setShowPeriodMenu] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -219,8 +241,6 @@ export default function ProgressPage() {
               <strong>{periodKm}</strong>
               <span>km sur la période</span>
             </div>
-
-            <div className="mini-line" />
           </article>
 
           <article className="progress-stat-card">
@@ -232,8 +252,6 @@ export default function ProgressPage() {
               <strong>{periodRides.length}</strong>
               <span>rides</span>
             </div>
-
-            <div className="mini-line" />
           </article>
 
           <article className="progress-stat-card">
@@ -245,8 +263,6 @@ export default function ProgressPage() {
               <strong>{periodElevation.toLocaleString("fr-FR")}</strong>
               <span>m dénivelé</span>
             </div>
-
-            <div className="mini-line" />
           </article>
         </section>
 
@@ -350,9 +366,14 @@ export default function ProgressPage() {
         </section>
 
         <section className="progress-rides-card">
-          <div className="section-title">
-            <h2>Mes rides récents</h2>
-            <span />
+          <div className="section-title section-title-with-action">
+            <div>
+              <h2>Mes rides récents</h2>
+              <span />
+            </div>
+            <button className="see-all-btn" onClick={() => navigate("/mes-rides")}>
+              Voir tout →
+            </button>
           </div>
 
           <div className="rides-table">
@@ -413,23 +434,39 @@ export default function ProgressPage() {
             const earned = summary ? badge.check(summary) : false;
             const progress = summary ? badge.getProgress(summary) : null;
             const Icon = badge.icon;
+            const copied = copiedId === badge.id;
+
+            const handleCopy = () => {
+              navigator.clipboard.writeText(badge.promo.code).catch(() => {});
+              setCopiedId(badge.id);
+              setTimeout(() => setCopiedId(null), 2000);
+            };
 
             return (
-                <div className={`badge-item ${earned ? "earned" : "locked"}`} key={badge.id}>
-                  <div className="badge-icon">
-                    <Icon size={26} />
-                  </div>
-                  <strong>{badge.label}</strong>
-                  {earned ? (
-                      <span className="badge-unlocked">Débloqué ✓</span>
-                  ) : progress ? (
-                      <span className="badge-progress">
-                      {progress.unit === "km"
-                          ? `${progress.current.toLocaleString("fr-FR")} / ${progress.goal} km`
-                          : `${progress.current} / ${progress.goal} ${progress.unit}`}
-                    </span>
-                  ) : null}
+              <div className={`badge-item ${earned ? "earned" : "locked"}`} key={badge.id}>
+                <div className="badge-icon">
+                  <Icon size={26} />
                 </div>
+                <strong>{badge.label}</strong>
+                {earned ? (
+                  <div className="badge-promo">
+                    <p className="badge-promo-desc">{badge.promo.desc}</p>
+                    <div className="badge-promo-code-row">
+                      <span className="badge-promo-code">{badge.promo.code}</span>
+                      <button className={`badge-promo-copy${copied ? " copied" : ""}`} onClick={handleCopy}>
+                        {copied ? <><Check size={13} /> Copié</> : <><Copy size={13} /> Copier</>}
+                      </button>
+                    </div>
+                    <span className="badge-promo-expires">Valide jusqu'au {badge.promo.expires}</span>
+                  </div>
+                ) : progress ? (
+                  <span className="badge-progress">
+                    {progress.unit === "km"
+                      ? `${progress.current.toLocaleString("fr-FR")} / ${progress.goal} km`
+                      : `${progress.current} / ${progress.goal} ${progress.unit}`}
+                  </span>
+                ) : null}
+              </div>
             );
           })}
         </div>

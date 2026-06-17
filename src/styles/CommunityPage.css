@@ -337,10 +337,10 @@
 /* LEADERBOARD */
 
 .leaderboard-card {
-  padding: 18px 20px;
-  display: grid;
-  grid-template-rows: 46px minmax(0, 1fr) 54px;
-  row-gap: 16px;
+  padding: 20px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   overflow: hidden;
 }
 
@@ -348,11 +348,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .leaderboard-title h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 950;
 }
 
@@ -360,44 +361,122 @@
   color: var(--yellow);
 }
 
-.leaderboard-list {
-  min-height: 0;
+/* PODIUM top 3 */
+.leaderboard-podium {
   display: grid;
-  grid-template-rows: repeat(5, 1fr);
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: flex-end;
+  flex-shrink: 0;
 }
 
-.leaderboard-item {
-  border-top: 1px solid var(--border);
-  display: grid;
-  grid-template-columns: 34px 54px 1fr 32px;
+.podium-slot {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+  padding: 10px 6px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  text-align: center;
+  transition: background 0.15s;
 }
 
-.leaderboard-rank {
+.podium-slot.rank-1 {
+  background: rgba(252, 229, 0, 0.07);
+  border-color: rgba(252, 229, 0, 0.2);
+  padding-top: 14px;
+  padding-bottom: 16px;
+}
+
+.podium-slot img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.podium-slot.rank-1 img {
+  width: 52px;
+  height: 52px;
+  border-color: var(--yellow);
+  box-shadow: 0 0 14px rgba(255, 230, 0, 0.3);
+}
+
+.podium-medal {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.podium-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 850;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.podium-km {
+  display: block;
+  font-size: 11px;
   color: var(--yellow);
-  font-size: 28px;
-  font-weight: 1000;
+  font-weight: 800;
 }
 
-.leaderboard-item img {
-  width: 54px;
-  height: 54px;
+/* REST list */
+.leaderboard-rest {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.leaderboard-rest-item {
+  display: grid;
+  grid-template-columns: 28px 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  transition: background 0.1s;
+}
+
+.leaderboard-rest-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.leaderboard-rest-rank {
+  font-size: 15px;
+  font-weight: 900;
+  color: #888;
+  text-align: center;
+}
+
+.leaderboard-rest-item img {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.leaderboard-item strong {
-  display: block;
-  font-size: 15px;
+.leaderboard-rest-item strong {
+  font-size: 13px;
   color: white;
+  display: block;
 }
 
-.leaderboard-item span {
-  display: block;
-  font-size: 14px;
-  color: #d0d0d0;
-  margin-top: 4px;
+.leaderboard-rest-item span {
+  font-size: 12px;
+  color: var(--yellow);
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .crown-icon {
@@ -406,23 +485,19 @@
 }
 
 .ranking-button {
-  height: 54px;
+  height: 44px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--yellow);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 950;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 18px;
-}
-
-.ranking-button span {
-  font-size: 30px;
-  line-height: 1;
+  gap: 14px;
+  flex-shrink: 0;
 }
 
 /* PETIT WEB */
@@ -728,6 +803,7 @@
 
 .community-tabs {
   display: flex;
+  justify-content: space-evenly;
   gap: 4px;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -994,6 +1070,19 @@
   color: #4ddb97;
   font-size: 13px;
   font-weight: 850;
+}
+
+.challenges-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 16px;
+}
+
+.challenges-column .challenge-community-card {
+  width: 100%;
+  scroll-snap-align: unset;
+  flex-shrink: unset;
 }
 
 /* ─── MOBILE TABS / EVENTS ─── */

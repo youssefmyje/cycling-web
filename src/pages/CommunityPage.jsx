@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -6,15 +6,12 @@ import {
   MessageSquare,
   Send,
   Trophy,
-  Crown,
   Map,
   Mountain,
   Clock,
   Users,
   CalendarDays,
   Route,
-  ChevronLeft,
-  ChevronRight,
   ExternalLink,
 } from "lucide-react";
 import { communityApi, eventsApi, challengesApi } from "../services/api";
@@ -61,9 +58,6 @@ export default function CommunityPage() {
 
   const [challenges, setChallenges] = useState([]);
   const [challengesLoading, setChallengesLoading] = useState(false);
-
-  const carouselRef = useRef(null);
-  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     Promise.allSettled([communityApi.getFeed(20), communityApi.leaderboard(5)]).then(
@@ -127,31 +121,13 @@ export default function CommunityPage() {
     }
   };
 
-  const scrollToSlide = (index) => {
-    const el = carouselRef.current;
-    if (!el) return;
-    const clamped = Math.max(0, Math.min(index, challenges.length - 1));
-    el.scrollTo({ left: el.offsetWidth * clamped, behavior: "smooth" });
-    setActiveSlide(clamped);
-  };
-
-  const handleCarouselScroll = () => {
-    const el = carouselRef.current;
-    if (!el) return;
-    setActiveSlide(Math.round(el.scrollLeft / el.offsetWidth));
-  };
-
   return (
     <section className="community-content">
       <header className="community-header">
         <div className="community-title">
-          <Users size={34} />
           <h1>Communauté</h1>
         </div>
         <div className="community-actions">
-          <button>
-            <Search size={24} />
-          </button>
         </div>
       </header>
 
@@ -265,27 +241,51 @@ export default function CommunityPage() {
             <aside className="leaderboard-card">
               <div className="leaderboard-title">
                 <h2>Leaderboard Hebdo</h2>
-                <Trophy size={24} />
+                <Trophy size={22} />
               </div>
-              <div className="leaderboard-list">
-                {leaderboard.length === 0 && (
-                  <p className="community-empty">Personne n'a encore roulé cette semaine.</p>
-                )}
-                {leaderboard.map((item) => (
-                  <div className="leaderboard-item" key={item.user_id}>
-                    <span className="leaderboard-rank">{item.rank}</span>
-                    <img
-                      src={item.avatar_url || "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300"}
-                      alt={item.display_name}
-                    />
-                    <div>
-                      <strong>{item.display_name}</strong>
-                      <span>{item.distance_km} km</span>
-                    </div>
-                    {item.rank === 1 && <Crown className="crown-icon" size={28} />}
+
+              {leaderboard.length === 0 ? (
+                <p className="community-empty">Personne n'a encore roulé cette semaine.</p>
+              ) : (
+                <>
+                  {/* Podium top 3 */}
+                  <div className="leaderboard-podium">
+                    {[1, 0, 2].map((idx) => {
+                      const item = leaderboard[idx];
+                      if (!item) return <div key={idx} />;
+                      const medals = ["🥇", "🥈", "🥉"];
+                      return (
+                        <div key={item.user_id} className={`podium-slot rank-${item.rank}`}>
+                          <span className="podium-medal">{medals[item.rank - 1]}</span>
+                          <img
+                            src={item.avatar_url || "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300"}
+                            alt={item.display_name}
+                          />
+                          <span className="podium-name">{item.display_name}</span>
+                          <span className="podium-km">{item.distance_km} km</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
+
+                  {/* Reste du classement */}
+                  {leaderboard.length > 3 && (
+                    <div className="leaderboard-rest">
+                      {leaderboard.slice(3).map((item) => (
+                        <div className="leaderboard-rest-item" key={item.user_id}>
+                          <span className="leaderboard-rest-rank">{item.rank}</span>
+                          <img
+                            src={item.avatar_url || "https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=300"}
+                            alt={item.display_name}
+                          />
+                          <strong>{item.display_name}</strong>
+                          <span>{item.distance_km} km</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </aside>
           </>
         )}
@@ -360,65 +360,25 @@ export default function CommunityPage() {
             ) : challenges.length === 0 ? (
               <p className="community-empty">Aucun challenge actif pour le moment.</p>
             ) : (
-              <>
-                <div className="challenges-carousel-wrapper">
-                  {challenges.length > 1 && (
-                    <button
-                      className="carousel-arrow-btn"
-                      onClick={() => scrollToSlide(activeSlide - 1)}
-                      disabled={activeSlide === 0}
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                  )}
-
-                  <div
-                    className="challenges-carousel"
-                    ref={carouselRef}
-                    onScroll={handleCarouselScroll}
-                  >
-                    {challenges.map((c) => (
-                      <article className="challenge-community-card" key={c.id}>
-                        <div className="challenge-community-icon">
-                          <Route size={36} />
-                        </div>
-                        <div className="challenge-community-info">
-                          <h3>{c.title}</h3>
-                          <p>{c.description}</p>
-                          <div className="challenge-community-meta">
-                            <span className="challenge-goal-badge">
-                              {c.goal_value} {c.goal_type === "rides_count" ? "sorties" : c.goal_type === "elevation_m" ? "m D+" : "km"}
-                            </span>
-                            {c.joined && <span className="challenge-joined-badge">Inscrit ✓</span>}
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-
-                  {challenges.length > 1 && (
-                    <button
-                      className="carousel-arrow-btn"
-                      onClick={() => scrollToSlide(activeSlide + 1)}
-                      disabled={activeSlide === challenges.length - 1}
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  )}
-                </div>
-
-                {challenges.length > 1 && (
-                  <div className="carousel-dots">
-                    {challenges.map((_, i) => (
-                      <button
-                        key={i}
-                        className={`carousel-dot${i === activeSlide ? " active" : ""}`}
-                        onClick={() => scrollToSlide(i)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </>
+              <div className="challenges-column">
+                {challenges.map((c) => (
+                  <article className="challenge-community-card" key={c.id}>
+                    <div className="challenge-community-icon">
+                      <Route size={32} />
+                    </div>
+                    <div className="challenge-community-info">
+                      <h3>{c.title}</h3>
+                      <p>{c.description}</p>
+                      <div className="challenge-community-meta">
+                        <span className="challenge-goal-badge">
+                          {c.goal_value} {c.goal_type === "rides_count" ? "sorties" : c.goal_type === "elevation_m" ? "m D+" : "km"}
+                        </span>
+                        {c.joined && <span className="challenge-joined-badge">Inscrit ✓</span>}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
             )}
           </section>
         )}

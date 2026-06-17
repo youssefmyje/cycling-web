@@ -294,11 +294,12 @@
 
 .recommendation-info {
   min-width: auto;
+  min-height: 200px;
 }
 .recommendation-info-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 .recommendation-info-buttons button {
@@ -433,6 +434,28 @@
   color: #b8b8b8;
   font-size: 12.5px;
 }
+
+.section-title-with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.see-all-btn {
+  background: transparent;
+  border: none;
+  color: var(--yellow);
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: 4px;
+}
+
+.see-all-btn:hover { text-decoration: underline; }
 
 /* RIDES RÉCENTS */
 
@@ -597,7 +620,7 @@
 
   .stats-cards {
     height: auto;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     margin-bottom: 0;
   }
 
@@ -623,6 +646,7 @@
   }
 
   .tire-visual-large.has-image img{
+    min-width: 30vw;
     transform: translateY(10%);
   }
   .recommendation-card,
