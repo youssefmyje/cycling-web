@@ -4,118 +4,66 @@ import { ArrowLeft, RotateCcw, ExternalLink, Package } from "lucide-react";
 import { getUser, profileApi, recommendationsApi } from "../services/api";
 import "../styles/RecommendationPage.css";
 
-const BIKE_TYPES = [
-  { value: "road", label: "Route" },
+const RIDER_TYPES = [
+  { value: "route", label: "Route" },
   { value: "gravel", label: "Gravel" },
   { value: "mtb", label: "VTT" },
-  { value: "city", label: "Urbain / Trekking" },
-  { value: "ebike", label: "E-bike" },
+  { value: "urban", label: "Urbain / Trekking" },
 ];
 
-const RIDING_STYLES_BY_BIKE = {
-  road: [
-    { value: "racing", label: "Compétition / course" },
-    { value: "endurance", label: "Endurance / longue distance" },
-  ],
-  gravel: [
-    { value: "endurance", label: "Endurance" },
-    { value: "all_road", label: "Tout-terrain mixte" },
-    { value: "touring", label: "Voyage / bikepacking" },
-  ],
-  mtb: [
-    { value: "cross_country", label: "Cross-country" },
-    { value: "trail", label: "Trail" },
-    { value: "enduro", label: "Enduro" },
-    { value: "downhill", label: "Descente" },
-  ],
-  city: [
-    { value: "urban", label: "Urbain quotidien" },
-    { value: "trekking", label: "Trekking urbain" },
-    { value: "touring", label: "Voyage" },
-  ],
-  ebike: [
-    { value: "endurance", label: "Endurance" },
-    { value: "all_road", label: "Tout-terrain mixte" },
-    { value: "trekking", label: "Trekking" },
-    { value: "urban", label: "Urbain" },
-    { value: "trail", label: "Trail" },
-  ],
-};
-
-const TERRAINS_BY_BIKE = {
-  road: [{ value: "asphalt", label: "Bitume" }],
-  gravel: [
-    { value: "asphalt", label: "Bitume" },
-    { value: "mixed", label: "Mixte" },
-    { value: "offroad_hard", label: "Chemin compact" },
-  ],
-  mtb: [
-    { value: "offroad_hard", label: "Chemin compact, sec" },
-    { value: "offroad_mixed", label: "Mixte, racines / rochers" },
-    { value: "offroad_soft", label: "Boue / sable" },
-  ],
-  city: [
-    { value: "asphalt", label: "Bitume" },
-    { value: "mixed", label: "Mixte" },
-  ],
-  ebike: [
-    { value: "asphalt", label: "Bitume" },
-    { value: "mixed", label: "Mixte" },
-    { value: "offroad_hard", label: "Chemin compact" },
-    { value: "offroad_mixed", label: "Mixte engagé" },
-  ],
-};
-
-const BUDGET_LEVELS = [
-  { value: "racing", label: "Racing", hint: "Le haut de gamme, pour la compétition" },
-  { value: "competition", label: "Compétition", hint: "Haute performance, riders exigeants" },
-  { value: "performance", label: "Performance", hint: "Bon compromis, pratique régulière" },
-  { value: "access", label: "Access", hint: "Entrée de gamme, usage occasionnel" },
+const TERRAINS = [
+  { value: "road", label: "Bitume / Route" },
+  { value: "mixed", label: "Mixte" },
+  { value: "trail", label: "Trail / Hors-route" },
+  { value: "city", label: "Ville" },
 ];
 
-const TUBELESS_OPTIONS = [
-  { value: true, label: "Tubeless Ready" },
-  { value: false, label: "Chambre à air" },
+const PRIORITIES = [
+  { value: "performance", label: "Performance", hint: "Vitesse et légèreté avant tout" },
+  { value: "grip", label: "Grip / Adhérence", hint: "Tenue de route et sécurité" },
+  { value: "durability", label: "Durabilité", hint: "Longévité et résistance" },
 ];
 
-const EBIKE_OPTIONS = [
-  { value: false, label: "Vélo classique" },
-  { value: true, label: "E-bike" },
+const WEATHERS = [
+  { value: "dry", label: "Temps sec" },
+  { value: "mixed", label: "Mixte" },
+  { value: "wet", label: "Temps humide / pluie" },
 ];
 
-const STEP_IDS = ["bike_type", "riding_style", "terrain", "budget_level", "tubeless", "e_bike"];
+const RIDE_FREQUENCIES = [
+  { value: "frequent", label: "Fréquent", hint: "Plusieurs fois par semaine" },
+  { value: "regular", label: "Régulier", hint: "Une fois par semaine" },
+  { value: "occasional", label: "Occasionnel", hint: "Quelques fois par mois" },
+];
+
+const STEP_IDS = ["rider_type", "terrain", "priority", "weather", "ride_frequency"];
 
 const STEP_TITLES = {
-  bike_type: "Quel type de vélo roules-tu ?",
-  riding_style: "Quel est ton style de pratique ?",
+  rider_type: "Quel type de cycliste es-tu ?",
   terrain: "Sur quel terrain roules-tu le plus ?",
-  budget_level: "Quel niveau de gamme recherches-tu ?",
-  tubeless: "Quel montage utilises-tu ?",
-  e_bike: "Roules-tu en e-bike ?",
+  priority: "Quelle est ta priorité ?",
+  weather: "Par quel temps roules-tu ?",
+  ride_frequency: "À quelle fréquence roules-tu ?",
 };
 
-function getOptions(stepId, answers) {
+function getOptions(stepId) {
   switch (stepId) {
-    case "bike_type":
-      return BIKE_TYPES;
-    case "riding_style":
-      return RIDING_STYLES_BY_BIKE[answers.bike_type] || [];
+    case "rider_type":
+      return RIDER_TYPES;
     case "terrain":
-      return TERRAINS_BY_BIKE[answers.bike_type] || [];
-    case "budget_level":
-      return BUDGET_LEVELS;
-    case "tubeless":
-      return TUBELESS_OPTIONS;
-    case "e_bike":
-      return EBIKE_OPTIONS;
+      return TERRAINS;
+    case "priority":
+      return PRIORITIES;
+    case "weather":
+      return WEATHERS;
+    case "ride_frequency":
+      return RIDE_FREQUENCIES;
     default:
       return [];
   }
 }
 
-function isStepNeeded(stepId, answers) {
-  if (stepId === "terrain") return getOptions("terrain", answers).length > 1;
-  if (stepId === "e_bike") return answers.bike_type !== "ebike";
+function isStepNeeded() {
   return true;
 }
 
@@ -132,16 +80,9 @@ export default function RecommendationPage() {
 
   const selectOption = (value) => {
     const nextAnswers = { ...answers, [currentStepId]: value };
-
-    if (currentStepId === "bike_type") {
-      delete nextAnswers.riding_style;
-      delete nextAnswers.terrain;
-      if (value === "ebike") nextAnswers.e_bike = true;
-    }
-
     setAnswers(nextAnswers);
 
-    const nextVisibleSteps = STEP_IDS.filter((id) => isStepNeeded(id, nextAnswers));
+    const nextVisibleSteps = STEP_IDS.filter(() => isStepNeeded());
     if (stepIndex < nextVisibleSteps.length - 1) {
       setStepIndex(stepIndex + 1);
     } else {
@@ -160,12 +101,11 @@ export default function RecommendationPage() {
 
     try {
       const res = await recommendationsApi.create({
-        bike_type: finalAnswers.bike_type,
-        riding_style: finalAnswers.riding_style,
-        terrain: finalAnswers.terrain || getOptions("terrain", finalAnswers)[0]?.value,
-        budget_level: finalAnswers.budget_level,
-        tubeless: finalAnswers.tubeless,
-        e_bike: Boolean(finalAnswers.e_bike),
+        rider_type: finalAnswers.rider_type,
+        terrain: finalAnswers.terrain,
+        priority: finalAnswers.priority,
+        weather: finalAnswers.weather,
+        ride_frequency: finalAnswers.ride_frequency,
       });
 
       setResult(res.data);
@@ -186,9 +126,9 @@ export default function RecommendationPage() {
       const current = await profileApi.get(user.id);
       await profileApi.update(user.id, {
         preferences: {
-          terrains: [finalAnswers.bike_type],
-          priorities: [finalAnswers.riding_style, finalAnswers.budget_level].filter(Boolean),
-          weather_preferences: current.data?.preferences?.weather_preferences || [],
+          terrains: [finalAnswers.terrain],
+          priorities: [finalAnswers.priority].filter(Boolean),
+          weather_preferences: [finalAnswers.weather].filter(Boolean),
         },
       });
     } catch (err) {
@@ -304,7 +244,7 @@ export default function RecommendationPage() {
               <p className="recommendation-loading">Recherche du pneu idéal...</p>
             ) : (
               <div className="recommendation-options">
-                {getOptions(currentStepId, answers).map((option) => (
+                {getOptions(currentStepId).map((option) => (
                   <button
                     key={String(option.value)}
                     className={answers[currentStepId] === option.value ? "active" : ""}
