@@ -290,18 +290,18 @@ export default function NewActivityPage() {
       </header>
 
       <div className="new-activity-tabs">
-        <button className={tab === "manual" ? "active" : ""} onClick={() => setTab("manual")}>
-          Saisie manuelle
-        </button>
-        <button className={tab === "gpx" ? "active" : ""} onClick={() => setTab("gpx")}>
-          Importer un GPX
-        </button>
         <button
           className={`strava-tab-btn ${tab === "strava" ? "active" : ""}`}
           onClick={() => setTab("strava")}
         >
           <Activity size={14} />
           Strava
+        </button>
+        <button className={tab === "gpx" ? "active" : ""} onClick={() => setTab("gpx")}>
+          Importer un GPX
+        </button>
+        <button className={tab === "manual" ? "active" : ""} onClick={() => setTab("manual")}>
+          Saisie manuelle
         </button>
       </div>
 
