@@ -19,6 +19,7 @@ const TERRAINS = [
 ];
 
 const PRIORITIES = [
+  { value: "racing", label: "Racing", hint: "Le haut de gamme, pour la compétition" },
   { value: "performance", label: "Performance", hint: "Vitesse et légèreté avant tout" },
   { value: "grip", label: "Grip / Adhérence", hint: "Tenue de route et sécurité" },
   { value: "durability", label: "Durabilité", hint: "Longévité et résistance" },
@@ -36,12 +37,18 @@ const RIDE_FREQUENCIES = [
   { value: "occasional", label: "Occasionnel", hint: "Quelques fois par mois" },
 ];
 
-const STEP_IDS = ["rider_type", "terrain", "priority", "weather", "ride_frequency"];
+const TUBELESS_OPTIONS = [
+  { value: true, label: "Tubeless Ready", hint: "Montage sans chambre à air" },
+  { value: false, label: "Chambre à air", hint: "Montage traditionnel" },
+];
+
+const STEP_IDS = ["rider_type", "terrain", "priority", "tubeless", "weather", "ride_frequency"];
 
 const STEP_TITLES = {
   rider_type: "Quel type de cycliste es-tu ?",
   terrain: "Sur quel terrain roules-tu le plus ?",
   priority: "Quelle est ta priorité ?",
+  tubeless: "Quel montage utilises-tu ?",
   weather: "Par quel temps roules-tu ?",
   ride_frequency: "À quelle fréquence roules-tu ?",
 };
@@ -54,6 +61,8 @@ function getOptions(stepId) {
       return TERRAINS;
     case "priority":
       return PRIORITIES;
+    case "tubeless":
+      return TUBELESS_OPTIONS;
     case "weather":
       return WEATHERS;
     case "ride_frequency":
@@ -104,6 +113,7 @@ export default function RecommendationPage() {
         rider_type: finalAnswers.rider_type,
         terrain: finalAnswers.terrain,
         priority: finalAnswers.priority,
+        tubeless: finalAnswers.tubeless,
         weather: finalAnswers.weather,
         ride_frequency: finalAnswers.ride_frequency,
       });
