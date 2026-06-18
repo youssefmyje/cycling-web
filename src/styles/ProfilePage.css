@@ -183,9 +183,9 @@
 .equipment-panel {
   padding: 26px 28px 18px;
   overflow-y: auto;
-  display: grid;
-  grid-template-rows: 42px minmax(180px, auto) 1px 32px minmax(0, 1fr) auto;
-  row-gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .bike-switcher {
@@ -371,6 +371,13 @@ select {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* TYRES SECTION */
+.tyres-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* TYRES GRID */
@@ -614,10 +621,6 @@ input:focus {
 @media (max-width: 1300px) {
   .profile-grid {
     grid-template-columns: 300px 1fr;
-  }
-
-  .equipment-panel {
-    grid-template-rows: 42px minmax(160px, auto) 1px 32px minmax(0, 1fr) auto;
   }
 
   .bike-image {

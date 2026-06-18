@@ -375,96 +375,98 @@ export default function ProfilePage() {
           Mes pneus Michelin
         </h3>
 
-        {selectedBike ? (
-          <>
-            {selectedBike.mounted_tyres?.length > 0 && (
-              <div className="tires-grid">
-                {selectedBike.mounted_tyres.map((tyre) => (
-                  <article
-                    className={`tire-card${tyre.catalogue_id ? " tire-card-clickable" : ""}`}
-                    key={tyre.id}
-                    onClick={() => tyre.catalogue_id && navigate(`/catalogue/${tyre.catalogue_id}`)}
-                  >
-                    <div className="tire-image-wrapper">
-                      {tyre.pic1 || tyre.pic2 ? (
-                        <img src={tyre.pic1 || tyre.pic2} alt={tyre.model} className="tire-image" />
-                      ) : (
-                        <CircleDot size={40} color="rgba(255,230,0,0.4)" />
-                      )}
-                    </div>
-                    <div className="tire-card-body">
-                      <p className="tire-brand">{tyre.brand}</p>
-                      <h4>{tyre.model}</h4>
-                      {tyre.size && <p className="tire-size">{tyre.size}</p>}
-                      <div className="tire-separator" />
-                      <p className="usage-label">Durée de vie</p>
-                      <strong className="usage-value">
-                        {Number(tyre.estimated_lifespan_km).toLocaleString("fr-FR")} km
-                      </strong>
-                      {tyre.catalogue_id && (
-                        <div className="tire-card-arrow">
-                          Voir la fiche <ArrowRight size={12} />
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
+        <div className="tyres-section">
+          {selectedBike ? (
+            <>
+              {selectedBike.mounted_tyres?.length > 0 && (
+                <div className="tires-grid">
+                  {selectedBike.mounted_tyres.map((tyre) => (
+                    <article
+                      className={`tire-card${tyre.catalogue_id ? " tire-card-clickable" : ""}`}
+                      key={tyre.id}
+                      onClick={() => tyre.catalogue_id && navigate(`/catalogue/${tyre.catalogue_id}`)}
+                    >
+                      <div className="tire-image-wrapper">
+                        {tyre.pic1 || tyre.pic2 ? (
+                          <img src={tyre.pic1 || tyre.pic2} alt={tyre.model} className="tire-image" />
+                        ) : (
+                          <CircleDot size={40} color="rgba(255,230,0,0.4)" />
+                        )}
+                      </div>
+                      <div className="tire-card-body">
+                        <p className="tire-brand">{tyre.brand}</p>
+                        <h4>{tyre.model}</h4>
+                        {tyre.size && <p className="tire-size">{tyre.size}</p>}
+                        <div className="tire-separator" />
+                        <p className="usage-label">Durée de vie</p>
+                        <strong className="usage-value">
+                          {Number(tyre.estimated_lifespan_km).toLocaleString("fr-FR")} km
+                        </strong>
+                        {tyre.catalogue_id && (
+                          <div className="tire-card-arrow">
+                            Voir la fiche <ArrowRight size={12} />
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
 
-            {showAddTyre ? (
-              <form className="tyre-add-form" onSubmit={submitTyre}>
-                <h4 className="tyre-add-title">Nouveau pneu</h4>
-                <div className="tyre-add-fields">
-                  <input
-                    value={tyreForm.model}
-                    onChange={(e) => setTyreForm((prev) => ({ ...prev, model: e.target.value }))}
-                    placeholder="Modèle (ex: Power Cup 2)"
-                    required
-                  />
-                  <input
-                    value={tyreForm.size}
-                    onChange={(e) => setTyreForm((prev) => ({ ...prev, size: e.target.value }))}
-                    placeholder="Taille (ex: 700x28)"
-                    required
-                  />
-                  <input
-                    type="date"
-                    value={tyreForm.mountedAt}
-                    onChange={(e) => setTyreForm((prev) => ({ ...prev, mountedAt: e.target.value }))}
-                    required
-                  />
-                  <input
-                    type="number"
-                    value={tyreForm.estimatedLifespanKm}
-                    onChange={(e) =>
-                      setTyreForm((prev) => ({ ...prev, estimatedLifespanKm: e.target.value }))
-                    }
-                    placeholder="Durée de vie (km)"
-                    required
-                  />
-                </div>
-                <div className="tyre-add-actions">
-                  <button className="save-btn" type="submit">
-                    <Save size={16} />
-                    Ajouter
-                  </button>
-                  <button className="cancel-btn" type="button" onClick={() => setShowAddTyre(false)}>
-                    <X size={16} />
-                    Annuler
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <button className="add-tyre-btn" onClick={() => setShowAddTyre(true)}>
-                <Plus size={16} />
-                Ajouter un pneu Michelin
-              </button>
-            )}
-          </>
-        ) : (
-          <p className="remaining-text">Ajoute d'abord un vélo pour pouvoir y monter des pneus.</p>
-        )}
+              {showAddTyre ? (
+                <form className="tyre-add-form" onSubmit={submitTyre}>
+                  <h4 className="tyre-add-title">Nouveau pneu</h4>
+                  <div className="tyre-add-fields">
+                    <input
+                      value={tyreForm.model}
+                      onChange={(e) => setTyreForm((prev) => ({ ...prev, model: e.target.value }))}
+                      placeholder="Modèle (ex: Power Cup 2)"
+                      required
+                    />
+                    <input
+                      value={tyreForm.size}
+                      onChange={(e) => setTyreForm((prev) => ({ ...prev, size: e.target.value }))}
+                      placeholder="Taille (ex: 700x28)"
+                      required
+                    />
+                    <input
+                      type="date"
+                      value={tyreForm.mountedAt}
+                      onChange={(e) => setTyreForm((prev) => ({ ...prev, mountedAt: e.target.value }))}
+                      required
+                    />
+                    <input
+                      type="number"
+                      value={tyreForm.estimatedLifespanKm}
+                      onChange={(e) =>
+                        setTyreForm((prev) => ({ ...prev, estimatedLifespanKm: e.target.value }))
+                      }
+                      placeholder="Durée de vie (km)"
+                      required
+                    />
+                  </div>
+                  <div className="tyre-add-actions">
+                    <button className="save-btn" type="submit">
+                      <Save size={16} />
+                      Ajouter
+                    </button>
+                    <button className="cancel-btn" type="button" onClick={() => setShowAddTyre(false)}>
+                      <X size={16} />
+                      Annuler
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button className="add-tyre-btn" onClick={() => setShowAddTyre(true)}>
+                  <Plus size={16} />
+                  Ajouter un pneu Michelin
+                </button>
+              )}
+            </>
+          ) : (
+            <p className="remaining-text">Ajoute d'abord un vélo pour pouvoir y monter des pneus.</p>
+          )}
+        </div>
 
         <div className="favorite-usages">
           <h3>Mes usages favoris</h3>
