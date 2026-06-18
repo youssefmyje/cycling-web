@@ -13,7 +13,7 @@ import {
   Crown,
   ChevronDown,
   TrendingUp, Navigation, Layers, TreePine, Building2,
-  Copy, Check,
+  Copy, Check, Lock, ChevronUp,
 } from "lucide-react";
 import { getUser, progressApi, activitiesApi, profileApi } from "../services/api";
 import "../styles/ProgressPage.css";
@@ -140,6 +140,9 @@ export default function ProgressPage() {
   const [period, setPeriod] = useState("7d");
   const [showPeriodMenu, setShowPeriodMenu] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+  const [hiddenPromos, setHiddenPromos] = useState({});
+
+  const togglePromo = (id) => setHiddenPromos((prev) => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
     if (!user?.id) return;
@@ -435,6 +438,7 @@ export default function ProgressPage() {
             const progress = summary ? badge.getProgress(summary) : null;
             const Icon = badge.icon;
             const copied = copiedId === badge.id;
+            const promoHidden = hiddenPromos[badge.id] ?? false;
 
             const handleCopy = () => {
               navigator.clipboard.writeText(badge.promo.code).catch(() => {});
@@ -448,23 +452,44 @@ export default function ProgressPage() {
                   <Icon size={26} />
                 </div>
                 <strong>{badge.label}</strong>
+
                 {earned ? (
-                  <div className="badge-promo">
-                    <p className="badge-promo-desc">{badge.promo.desc}</p>
-                    <div className="badge-promo-code-row">
-                      <span className="badge-promo-code">{badge.promo.code}</span>
-                      <button className={`badge-promo-copy${copied ? " copied" : ""}`} onClick={handleCopy}>
-                        {copied ? <><Check size={13} /> Copié</> : <><Copy size={13} /> Copier</>}
-                      </button>
-                    </div>
-                    <span className="badge-promo-expires">Valide jusqu'au {badge.promo.expires}</span>
-                  </div>
+                  <>
+                    <button
+                      className="badge-toggle-btn"
+                      onClick={() => togglePromo(badge.id)}
+                    >
+                      {promoHidden ? (
+                        <><ChevronDown size={12} /> Afficher la récompense</>
+                      ) : (
+                        <><ChevronUp size={12} /> Masquer</>
+                      )}
+                    </button>
+                    {!promoHidden && (
+                      <div className="badge-promo">
+                        <p className="badge-promo-desc">{badge.promo.desc}</p>
+                        <div className="badge-promo-code-row">
+                          <span className="badge-promo-code">{badge.promo.code}</span>
+                          <button className={`badge-promo-copy${copied ? " copied" : ""}`} onClick={handleCopy}>
+                            {copied ? <><Check size={13} /> Copié</> : <><Copy size={13} /> Copier</>}
+                          </button>
+                        </div>
+                        <span className="badge-promo-expires">Valide jusqu'au {badge.promo.expires}</span>
+                      </div>
+                    )}
+                  </>
                 ) : progress ? (
-                  <span className="badge-progress">
-                    {progress.unit === "km"
-                      ? `${progress.current.toLocaleString("fr-FR")} / ${progress.goal} km`
-                      : `${progress.current} / ${progress.goal} ${progress.unit}`}
-                  </span>
+                  <>
+                    <span className="badge-progress">
+                      {progress.unit === "km"
+                        ? `${progress.current.toLocaleString("fr-FR")} / ${progress.goal} km`
+                        : `${progress.current} / ${progress.goal} ${progress.unit}`}
+                    </span>
+                    <div className="badge-locked-reward">
+                      <Lock size={10} />
+                      {badge.promo.desc}
+                    </div>
+                  </>
                 ) : null}
               </div>
             );
