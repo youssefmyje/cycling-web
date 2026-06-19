@@ -12,7 +12,7 @@ import {
   Zap,
   Crown,
   ChevronDown,
-  TrendingUp, Navigation, Layers, TreePine, Building2,
+  Navigation, Layers, TreePine, Building2,
   Copy, Check, Lock, ChevronUp,
 } from "lucide-react";
 import { getUser, progressApi, activitiesApi, profileApi } from "../services/api";
